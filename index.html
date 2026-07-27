@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tabelafipe.site — consulta de preços</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a;
+    --surface:#1e2226;
+    --surface-2:#262b30;
+    --border:#33393f;
+    --amber:#FFB020;
+    --amber-2:#FF8A00;
+    --red:#E14545;
+    --text:#EDEEF0;
+    --muted:#8b92a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px;
+  }
+
+  .phone{
+    width:100%;
+    max-width:420px;
+    height:min(720px, 92vh);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:22px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .header{
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, #1a1e22, #171a1d);
+  }
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:15px;
+    flex-shrink:0;
+  }
+  .header-text .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; letter-spacing:.3px;}
+  .header-text .status{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#3ecb6e;display:inline-block;}
+
+  .chat{
+    flex:1;
+    overflow-y:auto;
+    padding:18px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .chat::-webkit-scrollbar{width:6px;}
+  .chat::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+
+  .row{display:flex; gap:8px; max-width:100%;}
+  .row.bot{justify-content:flex-start;}
+  .row.user{justify-content:flex-end;}
+
+  .mini-avatar{
+    width:26px;height:26px;border-radius:50%; flex-shrink:0;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    margin-top:2px;
+  }
+
+  .bubble{
+    padding:10px 14px;
+    border-radius:14px;
+    font-size:14.5px;
+    line-height:1.45;
+    max-width:78%;
+    animation:pop .22s ease;
+  }
+  .bot .bubble{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-top-left-radius:4px;
+  }
+  .user .bubble{
+    background:linear-gradient(135deg, var(--amber), var(--amber-2));
+    color:#1a1204;
+    font-weight:600;
+    border-top-right-radius:4px;
+  }
+  @keyframes pop{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* indicador de "digitando" — ponteiro de velocímetro */
+  .typing-bubble{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-top-left-radius:4px;
+    padding:10px 16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .speedo{width:22px;height:22px;position:relative;}
+  .speedo svg{width:100%;height:100%;}
+  .needle{
+    transform-origin:11px 11px;
+    animation:sweep 1s ease-in-out infinite alternate;
+  }
+  @keyframes sweep{from{transform:rotate(-40deg);} to{transform:rotate(40deg);}}
+  .typing-label{font-size:12px; color:var(--muted);}
+
+  .options{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:2px 0 4px 34px;
+  }
+  .opt-btn{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:all .15s ease;
+    font-family:'Inter',sans-serif;
+  }
+  .opt-btn:hover{border-color:var(--amber); color:var(--amber);}
+  .opt-btn.primary{
+    background:linear-gradient(135deg, var(--amber), var(--amber-2));
+    color:#1a1204; border:none; font-weight:600;
+  }
+  .opt-btn.secondary{border-color:var(--red); color:var(--red);}
+
+  .search-wrap{padding:4px 0 6px 34px;}
+  .search-input{
+    width:100%; max-width:260px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:12px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+  }
+  .search-input:focus{outline:none; border-color:var(--amber);}
+  .suggestions{display:flex; flex-direction:column; gap:5px; margin-top:6px; max-width:260px;}
+  .suggestion{
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:7px 12px; border-radius:10px; font-size:13.5px; cursor:pointer;
+  }
+  .suggestion:hover{border-color:var(--amber); color:var(--amber);}
+
+  /* card de resultado + hodômetro */
+  .result-card{
+    margin-left:34px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:16px;
+    max-width:82%;
+  }
+  .result-label{font-size:11.5px; color:var(--muted); letter-spacing:.6px; text-transform:uppercase;}
+  .odometer{
+    font-family:'JetBrains Mono', monospace;
+    font-size:28px;
+    font-weight:600;
+    color:var(--amber);
+    margin:6px 0 10px 0;
+    letter-spacing:1px;
+  }
+  .result-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12.5px; color:var(--muted);}
+  .result-grid b{color:var(--text); font-weight:600;}
+  .source-tag{
+    display:inline-block; margin-top:10px; font-size:11px;
+    padding:3px 9px; border-radius:8px; border:1px solid var(--border); color:var(--muted);
+  }
+
+  .footer-input{
+    display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border);
+    background:#17191c;
+  }
+  .footer-input input{
+    flex:1; background:var(--surface-2); border:1px solid var(--border); border-radius:20px;
+    padding:10px 14px; color:var(--text); font-size:14px;
+  }
+  .footer-input input:focus{outline:none; border-color:var(--amber);}
+  .footer-input button{
+    background:linear-gradient(135deg, var(--amber), var(--amber-2));
+    border:none; border-radius:50%; width:40px; height:40px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="header">
+    <div class="avatar">FP</div>
+    <div class="header-text">
+      <div class="name">Fipe Assistente</div>
+      <div class="status"><span class="dot"></span> online agora</div>
+    </div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="footer-input">
+    <input id="freeText" type="text" placeholder="Digite se preferir..." />
+    <button id="sendBtn" title="Enviar">➤</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   tabelafipe.site — motor do chat guiado
+   Troque API_BASE por vazio "" quando publicar na Vercel
+   (fetch relativo já funciona em /api/...)
+   ============================================================ */
+const API_BASE = ""; // ex: "" para usar /api/fipe-options e /api/fipe-lookup no mesmo domínio
+
+const chat = document.getElementById('chat');
+const freeText = document.getElementById('freeText');
+const sendBtn = document.getElementById('sendBtn');
+
+const state = {
+  tipo: null, marca: null, modelo: null, anoModelo: null, combustivel: null
+};
+
+function scrollDown(){ chat.scrollTop = chat.scrollHeight; }
+
+function addUserBubble(texto){
+  const row = document.createElement('div');
+  row.className = 'row user';
+  row.innerHTML = `<div class="bubble">${texto}</div>`;
+  chat.appendChild(row);
+  scrollDown();
+}
+
+function addBotBubble(texto){
+  const row = document.createElement('div');
+  row.className = 'row bot';
+  row.innerHTML = `<div class="mini-avatar"></div><div class="bubble">${texto}</div>`;
+  chat.appendChild(row);
+  scrollDown();
+}
+
+function showTyping(ms=1100){
+  return new Promise(resolve=>{
+    const row = document.createElement('div');
+    row.className = 'row bot';
+    row.innerHTML = `
+      <div class="mini-avatar"></div>
+      <div class="typing-bubble">
+        <div class="speedo">
+          <svg viewBox="0 0 22 22">
+            <circle cx="11" cy="11" r="9" fill="none" stroke="#3a4046" stroke-width="2"/>
+            <line class="needle" x1="11" y1="11" x2="11" y2="4" stroke="#FFB020" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="typing-label">digitando...</span>
+      </div>`;
+    chat.appendChild(row);
+    scrollDown();
+    setTimeout(()=>{ row.remove(); resolve(); }, ms);
+  });
+}
+
+function addOptions(opcoes, onPick, extraClassFn){
+  const wrap = document.createElement('div');
+  wrap.className = 'options';
+  opcoes.forEach(op=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (extraClassFn ? (' '+extraClassFn(op)) : '');
+    btn.textContent = op.label ?? op;
+    btn.onclick = ()=>{ wrap.remove(); onPick(op); };
+    wrap.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  scrollDown();
+}
+
+function addSearchBox(placeholder, buscarFn, onPick){
+  const wrap = document.createElement('div');
+  wrap.className = 'search-wrap';
+  wrap.innerHTML = `<input class="search-input" placeholder="${placeholder}" />
+                     <div class="suggestions"></div>`;
+  chat.appendChild(wrap);
+  const input = wrap.querySelector('input');
+  const sugWrap = wrap.querySelector('.suggestions');
+  input.focus();
+
+  let timer;
+  input.addEventListener('input', ()=>{
+    clearTimeout(timer);
+    timer = setTimeout(async ()=>{
+      const termo = input.value.trim();
+      if(termo.length < 2){ sugWrap.innerHTML=''; return; }
+      const lista = await buscarFn(termo);
+      sugWrap.innerHTML = '';
+      lista.slice(0,6).forEach(item=>{
+        const div = document.createElement('div');
+        div.className = 'suggestion';
+        div.textContent = item.nome;
+        div.onclick = ()=>{ wrap.remove(); onPick(item); };
+        sugWrap.appendChild(div);
+      });
+    }, 250);
+  });
+  scrollDown();
+}
+
+/* ---------- chamadas de API (com fallback mock se offline) ---------- */
+
+const MOCK = {
+  carros: {
+    marcas: ["VW - VolksWagen","Fiat","Chevrolet","Toyota","Honda","Hyundai"],
+    modelos: { "VW - VolksWagen": ["Gol 1.6","Polo 1.0","T-Cross 1.4"] },
+    anos: { "Gol 1.6": [2018,2019,2020,2021,2022] }
+  },
+  motos: {
+    marcas: ["Honda","Yamaha","Suzuki"],
+    modelos: { "Honda": ["CG 160","Biz 125"] },
+    anos: { "CG 160": [2019,2020,2021,2022] }
+  },
+  caminhoes: {
+    marcas: ["Mercedes-Benz","Volvo","Scania"],
+    modelos: { "Mercedes-Benz": ["Accelo 815","Atego 1719"] },
+    anos: { "Accelo 815": [2017,2018,2019,2020] }
+  }
+};
+
+async function buscarMarcas(tipo, termo){
+  try{
+    const r = await fetch(`${API_BASE}/api/fipe-options?tipo=${tipo}&campo=marcas`);
+    if(!r.ok) throw new Error();
+    const lista = await r.json();
+    return lista.filter(m=>m.nome.toLowerCase().includes(termo.toLowerCase()));
+  }catch(e){
+    return MOCK[tipo].marcas
+      .filter(m=>m.toLowerCase().includes(termo.toLowerCase()))
+      .map(m=>({nome:m}));
+  }
+}
+
+async function buscarModelos(tipo, marca, termo){
+  try{
+    const r = await fetch(`${API_BASE}/api/fipe-options?tipo=${tipo}&campo=modelos&marca=${encodeURIComponent(marca)}`);
+    if(!r.ok) throw new Error();
+    const lista = await r.json();
+    return lista.filter(m=>m.nome.toLowerCase().includes(termo.toLowerCase()));
+  }catch(e){
+    const base = MOCK[tipo].modelos[marca] || [];
+    return base.filter(m=>m.toLowerCase().includes(termo.toLowerCase())).map(m=>({nome:m}));
+  }
+}
+
+async function buscarAnos(tipo, marca, modelo){
+  try{
+    const r = await fetch(`${API_BASE}/api/fipe-options?tipo=${tipo}&campo=anos&marca=${encodeURIComponent(marca)}&modelo=${encodeURIComponent(modelo)}`);
+    if(!r.ok) throw new Error();
+    return await r.json();
+  }catch(e){
+    return (MOCK[tipo].anos[modelo] || [2020,2021,2022]).map(a=>({label:String(a), valor:a}));
+  }
+}
+
+async function consultarPreco(payload){
+  try{
+    const r = await fetch(`${API_BASE}/api/fipe-lookup`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error();
+    return await r.json();
+  }catch(e){
+    // fallback de demonstração
+    return {
+      marca: payload.marca, modelo: payload.modelo, anoModelo: payload.anoModelo,
+      valor: "R$ 47.328,00", mesReferencia: "julho de 2026",
+      codigoFipe: "005340-8", fonte: "demo (sem conexão com a API)",
+      veioDoCache: false
+    };
+  }
+}
+
+/* ---------- animação de hodômetro para o valor final ---------- */
+function animarHodometro(el, textoFinal){
+  const numeros = textoFinal.match(/[\d.,]+/)?.[0] || "";
+  let i = 0;
+  el.textContent = textoFinal.replace(numeros, "");
+  const alvo = numeros.split('');
+  const atual = alvo.map(()=> '0');
+  const interval = setInterval(()=>{
+    atual[i] = alvo[i];
+    el.textContent = textoFinal.slice(0, textoFinal.indexOf(numeros)) + atual.join('') + textoFinal.slice(textoFinal.indexOf(numeros)+numeros.length);
+    i++;
+    if(i >= alvo.length){ clearInterval(interval); el.textContent = textoFinal; }
+  }, 60);
+}
+
+/* ---------- fluxo principal da conversa ---------- */
+
+async function iniciar(){
+  await showTyping(1400);
+  addBotBubble("Oi! Eu sou o assistente do tabelafipe.site 👋");
+  await showTyping(900);
+  addBotBubble("Você quer pesquisar preço de qual tipo de veículo?");
+  addOptions(
+    [{label:"🚗 Carro", tipo:"carros"},{label:"🏍️ Moto", tipo:"motos"},{label:"🚚 Caminhão", tipo:"caminhoes"}],
+    async (op)=>{
+      addUserBubble(op.label);
+      state.tipo = op.tipo;
+      await confirmar(`Beleza, veículo do tipo <b>${op.label}</b>. Confirma?`, ()=>perguntarMarca());
+    }
+  );
+}
+
+async function confirmar(pergunta, onConfirma){
+  await showTyping(700);
+  addBotBubble(pergunta);
+  addOptions(
+    [{label:"✅ Confirmar"},{label:"✏️ Corrigir"}],
+    (op)=>{
+      addUserBubble(op.label);
+      if(op.label.includes("Confirmar")) onConfirma();
+      else location.reload(); // simples: reinicia o fluxo (pode ser refinado por etapa depois)
+    },
+    (op)=> op.label.includes("Corrigir") ? "secondary" : "primary"
+  );
+}
+
+async function perguntarMarca(){
+  await showTyping(900);
+  addBotBubble("Qual a <b>marca</b>? (comece a digitar)");
+  addSearchBox("Ex: Volkswagen, Honda...", (termo)=>buscarMarcas(state.tipo, termo), async (item)=>{
+    addUserBubble(item.nome);
+    state.marca = item.nome;
+    await confirmar(`Marca <b>${item.nome}</b>, confirma?`, ()=>perguntarModelo());
+  });
+}
+
+async function perguntarModelo(){
+  await showTyping(900);
+  addBotBubble("E o <b>modelo</b>?");
+  addSearchBox("Ex: Gol, CG 160...", (termo)=>buscarModelos(state.tipo, state.marca, termo), async (item)=>{
+    addUserBubble(item.nome);
+    state.modelo = item.nome;
+    await confirmar(`Modelo <b>${item.nome}</b>, confirma?`, ()=>perguntarAno());
+  });
+}
+
+async function perguntarAno(){
+  await showTyping(900);
+  addBotBubble("Qual o <b>ano/modelo</b>?");
+  const anos = await buscarAnos(state.tipo, state.marca, state.modelo);
+  addOptions(anos.map(a=>({label:a.label, valor:a.valor ?? a.label})), async (op)=>{
+    addUserBubble(op.label);
+    state.anoModelo = parseInt(op.valor ?? op.label);
+    await confirmar(`Ano <b>${op.label}</b>, confirma? Já vou consultar o preço.`, ()=>buscarResultado());
+  });
+}
+
+async function buscarResultado(){
+  await showTyping(1800);
+  const resultado = await consultarPreco(state);
+
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.innerHTML = `
+    <div class="result-label">valor fipe</div>
+    <div class="odometer" id="odometroValor">R$ 0,00</div>
+    <div class="result-grid">
+      <div>Marca<br><b>${resultado.marca}</b></div>
+      <div>Modelo<br><b>${resultado.modelo}</b></div>
+      <div>Ano<br><b>${resultado.anoModelo}</b></div>
+      <div>Referência<br><b>${resultado.mesReferencia}</b></div>
+    </div>
+    <span class="source-tag">${resultado.veioDoCache ? "📦 nossa base" : "🌐 " + resultado.fonte} · FIPE ${resultado.codigoFipe}</span>
+  `;
+  chat.appendChild(card);
+  scrollDown();
+  animarHodometro(document.getElementById('odometroValor'), resultado.valor);
+
+  await showTyping(800);
+  addBotBubble("Prontinho! Quer pesquisar outro veículo?");
+  addOptions([{label:"🔁 Nova pesquisa"}], ()=> location.reload());
+}
+
+/* input livre (opcional, não faz parte do fluxo guiado ainda) */
+sendBtn.onclick = ()=>{
+  if(!freeText.value.trim()) return;
+  addUserBubble(freeText.value.trim());
+  freeText.value = '';
+};
+freeText.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
+
+iniciar();
+</script>
+</body>
+</html>
