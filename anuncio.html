@@ -85,6 +85,7 @@
   .btn.ghost:hover{border-color:var(--amber); color:var(--amber);}
 
   .erro{color:var(--red); font-size:14px; margin-bottom:14px;}
+  .publicado{color:#3ecb6e; font-size:13px; margin-bottom:12px; font-weight:600;}
 
   .voltar-link{display:inline-block; margin-top:18px; color:var(--muted); font-size:13px; text-decoration:none;}
   .voltar-link:hover{color:var(--amber);}
@@ -130,17 +131,19 @@ function renderErro(msg){
     <div class="erro">😕 ${msg}</div>
     <div class="acoes">
       <button class="btn primary" id="btnTentar">🔁 Tentar de novo</button>
-      <a class="btn ghost" href="index.html" style="text-decoration:none; display:inline-flex; align-items:center;">⬅ Voltar ao chat</a>
+      <a class="btn ghost" href="consultar.html" style="text-decoration:none; display:inline-flex; align-items:center;">⬅ Voltar ao chat</a>
     </div>`;
   document.getElementById('btnTentar').onclick = gerarAnuncio;
 }
 
-function renderTexto(texto){
+function renderTexto(texto, publicado){
   cardConteudo.innerHTML = `
+    ${publicado ? `<div class="publicado">✅ Anúncio publicado na página de Anúncios!</div>` : ''}
     <div class="anuncio-texto" id="textoAnuncio"></div>
     <div class="acoes">
       <button class="btn primary" id="btnCopiar">📋 Copiar texto</button>
-      <a class="btn ghost" href="index.html" style="text-decoration:none; display:inline-flex; align-items:center;">🔁 Nova pesquisa</a>
+      ${publicado ? `<a class="btn ghost" href="anuncios.html" style="text-decoration:none; display:inline-flex; align-items:center;">📋 Ver anúncios</a>` : ''}
+      <a class="btn ghost" href="consultar.html" style="text-decoration:none; display:inline-flex; align-items:center;">🔁 Nova pesquisa</a>
     </div>`;
   document.getElementById('textoAnuncio').textContent = texto;
   document.getElementById('btnCopiar').onclick = async ()=>{
@@ -172,7 +175,7 @@ async function gerarAnuncio(){
     });
     const resposta = await r.json();
     if(!r.ok || !resposta.texto) throw new Error(resposta.erro || 'falha ao gerar o anúncio');
-    renderTexto(resposta.texto);
+    renderTexto(resposta.texto, resposta.publicado);
   }catch(e){
     renderErro('Não consegui gerar o texto agora. Tente de novo em instantes.');
   }

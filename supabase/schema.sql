@@ -58,3 +58,51 @@ begin
   do update set requisicoes = fontes_quota.requisicoes + 1;
 end;
 $$ language plpgsql;
+
+-- ========================================
+-- Anúncios de venda (texto gerado com IA)
+-- ========================================
+
+-- Anúncios de venda gerados pelo chat (texto criado com IA)
+create table if not exists anuncios (
+  id bigint generated always as identity primary key,
+  tipo text not null check (tipo in ('carros', 'motos', 'caminhoes')),
+  marca text not null,
+  modelo text not null,
+  ano_modelo integer not null,
+  valor_fipe text,
+  valor_desejado text,
+  estado text,
+  cidade text,
+  cor text,
+  quilometragem text,
+  pneus text,
+  estofados text,
+  telefone text not null,
+  email text,
+  texto text not null,
+  criado_em timestamptz default now()
+);
+
+-- RLS ligado, sem policies para anon/authenticated: só a service_role
+-- (usada pela Edge Function gerar-anuncio) pode inserir/ler a tabela base.
+alter table anuncios enable row level security;
+
+create index if not exists idx_anuncios_criado_em on anuncios (criado_em desc);
+create index if not exists idx_anuncios_tipo on anuncios (tipo);
+
+-- View pública consumida pela página /anuncios.html: nunca expõe telefone
+-- ou email em texto puro, só um link pronto do WhatsApp. SECURITY DEFINER
+-- é intencional aqui — é o que permite ela ler através da tabela protegida
+-- por RLS acima, expondo só as colunas selecionadas.
+create or replace view anuncios_publicos
+with (security_invoker = false)
+as
+select
+  id, tipo, marca, modelo, ano_modelo, valor_fipe, valor_desejado,
+  estado, cidade, cor, quilometragem, pneus, estofados, texto, criado_em,
+  ('https://wa.me/55' || regexp_replace(telefone, '\D', '', 'g')) as whatsapp_link
+from anuncios
+order by criado_em desc;
+
+grant select on anuncios_publicos to anon, authenticated;
