@@ -503,16 +503,84 @@ async function buscarResultado(){
   animarHodometro(document.getElementById('odometroValor'), resultado.valor);
 
   await showTyping(800);
-  addBotBubble("Prontinho! Quer pesquisar outro veículo?");
+  addBotBubble("Prontinho! Quer pesquisar outro veículo, vender ou comprar um carro?");
+  addOptions(
+    [{label:"🔁 Nova pesquisa"},{label:"💰 Quero vender"},{label:"🛒 Quero comprar"}],
+    async (op)=>{
+      addUserBubble(op.label);
+      if(op.label.includes("Nova pesquisa")) return location.reload();
+      if(op.label.includes("vender")) return perguntarSeQuerAnuncio();
+      return perguntarComprar();
+    }
+  );
+}
+
+async function perguntarComprar(){
+  await showTyping(900);
+  addBotBubble("Em breve vou te ajudar a encontrar o carro ideal por aqui 👀 Por enquanto, bora fazer outra pesquisa?");
   addOptions([{label:"🔁 Nova pesquisa"}], ()=> location.reload());
 }
 
-/* input livre (opcional, não faz parte do fluxo guiado ainda) */
-sendBtn.onclick = ()=>{
+async function perguntarSeQuerAnuncio(){
+  await showTyping(900);
+  addBotBubble("Quer que eu faça o texto do seu anúncio pra vender esse carro? É rapidinho 📝");
+  addOptions(
+    [{label:"✅ Sim, por favor"},{label:"❌ Agora não"}],
+    async (op)=>{
+      addUserBubble(op.label);
+      if(op.label.includes("Sim")) return coletarDadosAnuncio();
+      await showTyping(600);
+      addBotBubble("Combinado! Se mudar de ideia é só chamar. 🙂");
+      addOptions([{label:"🔁 Nova pesquisa"}], ()=> location.reload());
+    }
+  );
+}
+
+/* ---------- coleta de dados do anúncio (texto livre pelo rodapé) ---------- */
+
+function perguntarTexto(pergunta, opcional=false){
+  return new Promise(async (resolve)=>{
+    await showTyping(700);
+    addBotBubble(pergunta);
+    freeText.placeholder = opcional ? "Digite ou envie em branco pra pular..." : "Digite sua resposta...";
+    freeText.focus();
+    sendBtn.onclick = ()=>{
+      const val = freeText.value.trim();
+      if(!val && !opcional) return;
+      addUserBubble(val || '<i style="color:var(--muted)">(pulou)</i>');
+      freeText.value = '';
+      freeText.placeholder = "Digite se preferir...";
+      sendBtn.onclick = sendPadrao;
+      resolve(val);
+    };
+  });
+}
+
+async function coletarDadosAnuncio(){
+  const dados = { ...state };
+  dados.valorFipe = document.getElementById('odometroValor')?.textContent || null;
+  dados.nome = await perguntarTexto("Show! Qual é o seu <b>nome</b>?");
+  dados.telefone = await perguntarTexto("Qual o seu <b>telefone/WhatsApp</b> pra contato?");
+  dados.cor = await perguntarTexto("Qual a <b>cor</b> do carro?");
+  dados.quilometragem = await perguntarTexto("Qual a <b>quilometragem</b> atual?");
+  dados.pneus = await perguntarTexto("Como estão os <b>pneus</b>?");
+  dados.estofados = await perguntarTexto("Como estão os <b>estofados/bancos</b>?");
+  dados.extra = await perguntarTexto("Mais alguma coisa sobre o carro que vale destacar? (acessórios, revisões, único dono...)", true);
+
+  await showTyping(1000);
+  addBotBubble("Perfeito, já tenho tudo! Vou preparar o texto do seu anúncio agora ✍️");
+  sessionStorage.setItem('anuncioDados', JSON.stringify(dados));
+  await showTyping(900);
+  location.href = 'anuncio.html';
+}
+
+/* input livre (fora do fluxo guiado: envia direto pro chat) */
+const sendPadrao = ()=>{
   if(!freeText.value.trim()) return;
   addUserBubble(freeText.value.trim());
   freeText.value = '';
 };
+sendBtn.onclick = sendPadrao;
 freeText.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
 
 iniciar();

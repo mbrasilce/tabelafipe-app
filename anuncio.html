@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tabelafipe.site — texto do anúncio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a;
+    --surface:#1e2226;
+    --surface-2:#262b30;
+    --border:#33393f;
+    --amber:#FFB020;
+    --amber-2:#FF8A00;
+    --red:#E14545;
+    --text:#EDEEF0;
+    --muted:#8b92a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px;
+  }
+
+  .page{width:100%; max-width:560px;}
+
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:15px;
+    flex-shrink:0;
+  }
+  .topbar .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; letter-spacing:.3px;}
+  .topbar .sub{font-size:12px; color:var(--muted);}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .status-row{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px;}
+  .spinner{
+    width:18px;height:18px;border-radius:50%;
+    border:2.5px solid var(--border);
+    border-top-color:var(--amber);
+    animation:spin .8s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .anuncio-texto{
+    white-space:pre-wrap;
+    font-size:15px;
+    line-height:1.6;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin:6px 0 16px 0;
+  }
+
+  .acoes{display:flex; flex-wrap:wrap; gap:10px;}
+  .btn{
+    border:none; border-radius:20px; padding:10px 18px;
+    font-size:13.5px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn.primary{background:linear-gradient(135deg, var(--amber), var(--amber-2)); color:#1a1204;}
+  .btn.ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+  .btn.ghost:hover{border-color:var(--amber); color:var(--amber);}
+
+  .erro{color:var(--red); font-size:14px; margin-bottom:14px;}
+
+  .voltar-link{display:inline-block; margin-top:18px; color:var(--muted); font-size:13px; text-decoration:none;}
+  .voltar-link:hover{color:var(--amber);}
+
+  /* espaço reservado para o Google Ads (a integrar depois) */
+  .ad-slot{margin-top:22px; min-height:0;}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topbar">
+    <div class="avatar">FP</div>
+    <div>
+      <div class="name">Fipe Assistente</div>
+      <div class="sub">texto do seu anúncio</div>
+    </div>
+  </div>
+
+  <div class="card" id="cardConteudo">
+    <div class="status-row"><div class="spinner"></div> gerando o texto do anúncio...</div>
+  </div>
+
+  <div class="ad-slot"><!-- espaço reservado para anúncio do Google --></div>
+</div>
+
+<script>
+/* ============================================================
+   tabelafipe.site — geração do texto do anúncio via Gemini
+   (chamada através de uma Edge Function no Supabase)
+   Preencha SUPABASE_URL e SUPABASE_ANON_KEY com os dados do
+   seu projeto (Project Settings > API). A chave anon é pública
+   por design, o segredo (GEMINI_API_KEY) fica só na Edge Function.
+   ============================================================ */
+const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+const SUPABASE_ANON_KEY = "SUA-CHAVE-ANON-AQUI";
+const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/gerar-anuncio`;
+
+const cardConteudo = document.getElementById('cardConteudo');
+
+function renderErro(msg){
+  cardConteudo.innerHTML = `
+    <div class="erro">😕 ${msg}</div>
+    <div class="acoes">
+      <button class="btn primary" id="btnTentar">🔁 Tentar de novo</button>
+      <a class="btn ghost" href="index.html" style="text-decoration:none; display:inline-flex; align-items:center;">⬅ Voltar ao chat</a>
+    </div>`;
+  document.getElementById('btnTentar').onclick = gerarAnuncio;
+}
+
+function renderTexto(texto){
+  cardConteudo.innerHTML = `
+    <div class="anuncio-texto" id="textoAnuncio"></div>
+    <div class="acoes">
+      <button class="btn primary" id="btnCopiar">📋 Copiar texto</button>
+      <a class="btn ghost" href="index.html" style="text-decoration:none; display:inline-flex; align-items:center;">🔁 Nova pesquisa</a>
+    </div>`;
+  document.getElementById('textoAnuncio').textContent = texto;
+  document.getElementById('btnCopiar').onclick = async ()=>{
+    await navigator.clipboard.writeText(texto);
+    const btn = document.getElementById('btnCopiar');
+    btn.textContent = "✅ Copiado!";
+    setTimeout(()=>{ btn.textContent = "📋 Copiar texto"; }, 1800);
+  };
+}
+
+async function gerarAnuncio(){
+  cardConteudo.innerHTML = `<div class="status-row"><div class="spinner"></div> gerando o texto do anúncio...</div>`;
+
+  const dadosBrutos = sessionStorage.getItem('anuncioDados');
+  if(!dadosBrutos){
+    return renderErro('Não encontrei os dados do seu carro. Volte ao chat e comece pela pesquisa do veículo.');
+  }
+  const dados = JSON.parse(dadosBrutos);
+
+  try{
+    const r = await fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(dados),
+    });
+    const resposta = await r.json();
+    if(!r.ok || !resposta.texto) throw new Error(resposta.erro || 'falha ao gerar o anúncio');
+    renderTexto(resposta.texto);
+  }catch(e){
+    renderErro('Não consegui gerar o texto agora. Tente de novo em instantes.');
+  }
+}
+
+gerarAnuncio();
+</script>
+</body>
+</html>
