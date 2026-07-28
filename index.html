@@ -8,20 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14171a;
-    --surface:#1e2226;
-    --surface-2:#262b30;
-    --border:#33393f;
-    --amber:#FFB020;
-    --amber-2:#FF8A00;
-    --text:#EDEEF0;
-    --muted:#8b92a0;
+    --bg:#F2F4F7;
+    --surface:#FFFFFF;
+    --surface-2:#EAF1F7;
+    --border:#D3DCE4;
+    --blue:#33A9F4;
+    --blue-2:#20A1FA;
+    --text:#2D2D2D;
+    --muted:#758A9C;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
     margin:0;
-    background:radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    background:radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg) 60%);
     color:var(--text);
     font-family:'Inter',system-ui,sans-serif;
     min-height:100vh;
@@ -35,9 +35,9 @@
   .hero{text-align:center; max-width:480px; margin-bottom:34px;}
   .logo{
     width:56px;height:56px;border-radius:50%; margin:0 auto 16px auto;
-    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    background:conic-gradient(from 220deg, var(--blue), var(--blue-2), var(--blue));
     display:flex; align-items:center; justify-content:center;
-    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:20px;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#ffffff; font-size:20px;
   }
   h1{font-family:'Oswald',sans-serif; font-weight:600; font-size:26px; margin:0 0 8px 0; letter-spacing:.3px;}
   .hero p{color:var(--muted); font-size:14.5px; line-height:1.5; margin:0;}
@@ -53,13 +53,13 @@
     color:var(--text);
     display:flex; flex-direction:column; gap:8px;
     transition:transform .15s ease, border-color .15s ease;
-    box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
+    box-shadow:0 20px 40px -20px rgba(45,45,45,0.18);
   }
-  .card:hover{transform:translateY(-3px); border-color:var(--amber);}
+  .card:hover{transform:translateY(-3px); border-color:var(--blue);}
   .card .icon{font-size:30px;}
   .card .title{font-family:'Oswald',sans-serif; font-weight:600; font-size:17px;}
   .card .desc{color:var(--muted); font-size:13px; line-height:1.5;}
-  .card .cta{margin-top:6px; font-size:13px; font-weight:600; color:var(--amber);}
+  .card .cta{margin-top:6px; font-size:13px; font-weight:600; color:var(--blue);}
 </style>
 </head>
 <body>
