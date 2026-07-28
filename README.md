@@ -8,12 +8,19 @@ api/
   fipe-options.js      -> catálogo (marcas/modelos/anos) via Parallelum
   lib/sources.js       -> adapters de cada fonte externa (Parallelum, fipeapi, fipe.online)
 supabase/
-  schema.sql                     -> tabelas: veiculos_cache, buscas_log, fontes_quota, anuncios (+ view anuncios_publicos)
-  functions/gerar-anuncio/       -> Edge Function: gera o texto do anúncio via Gemini e publica em anuncios
-index.html            -> página inicial: escolher entre Consultar e Ver anúncios
-consultar.html        -> chat guiado (pesquisa de preço + fluxo de venda)
+  schema.sql                        -> tabelas: veiculos_cache, buscas_log, fontes_quota,
+                                        anuncios, interessados (+ view anuncios_publicos)
+  functions/gerar-anuncio/          -> Edge Function: gera o texto via Gemini, publica em
+                                        anuncios e convida o vendedor (Supabase Auth)
+  functions/solicitar-contato/      -> Edge Function: registra o interessado e manda os
+                                        emails (Resend) — pro interessado e pro vendedor
+index.html             -> página inicial: escolher entre Consultar e Ver anúncios
+consultar.html         -> chat guiado (pesquisa de preço + fluxo de venda)
 anuncio.html           -> mostra o texto gerado do SEU anúncio (espaço p/ Google Ads futuramente)
 anuncios.html          -> listagem pública de anúncios (lê a view anuncios_publicos)
+vendedor-login.html    -> login do vendedor (email/senha) + recuperar senha
+definir-senha.html     -> landing dos links de convite/recuperação do Supabase Auth
+vendedor.html          -> painel do vendedor: CRUD do próprio anúncio + lista de interessados
 vercel.json
 package.json
 ```
@@ -60,23 +67,58 @@ com o Gemini — se `publicar` for true, ela também grava o anúncio na tabela
 `anuncios`, que alimenta a listagem pública em `anuncios.html`.
 
 **Privacidade do contato**: o texto gerado pela IA nunca inclui telefone ou
-email (instrução explícita no prompt). Na listagem pública, o contato
-aparece só como um botão "Falar no WhatsApp" (`wa.me/...`), montado a partir
-do telefone; o email nunca é exposto publicamente — ele só fica salvo na
-tabela `anuncios`, que tem RLS ativo e nenhuma policy pra `anon`/`authenticated`
-(só a Edge Function, com a service role, lê/escreve nela). A página pública
-lê de uma view (`anuncios_publicos`) que expõe apenas os campos não
-sensíveis + o link do WhatsApp.
+email (instrução explícita no prompt). O contato do vendedor **não é mais
+exposto na página pública** de jeito nenhum (nem como link de WhatsApp) — o
+interessado usa o botão "Entrar em contato" em `anuncios.html`, informa
+nome/email/telefone, e a Edge Function `solicitar-contato` manda o contato
+do vendedor por email pra ele, além de registrar o lead em `interessados` e
+avisar o vendedor por email. Telefone/email do vendedor só existem na tabela
+base `anuncios`/`interessados`, protegidas por RLS sem policy pra
+`anon`/`authenticated` — só a service_role (dentro das Edge Functions) lê. A
+página pública lê de uma view (`anuncios_publicos`) que nem sequer inclui
+essas colunas.
 
-1. **Deploy da function**:
+1. **Deploy das functions**:
    ```bash
    supabase link --project-ref SEU-PROJETO
    supabase secrets set GEMINI_API_KEY=sua-chave-da-generative-language-api
+   supabase secrets set RESEND_API_KEY=sua-chave-do-resend
    supabase functions deploy gerar-anuncio
+   supabase functions deploy solicitar-contato
    ```
-2. **Frontend**: em `anuncio.html` e `anuncios.html`, preencher `SUPABASE_URL`
-   e `SUPABASE_ANON_KEY` (Project Settings > API — a chave anon é pública por
-   design, quem fica secreta é a `GEMINI_API_KEY`, usada só dentro da function).
+2. **Frontend**: em `anuncio.html`, `anuncios.html`, `vendedor-login.html`,
+   `definir-senha.html` e `vendedor.html`, preencher `SUPABASE_URL` e
+   `SUPABASE_ANON_KEY` (Project Settings > API — a chave anon é pública por
+   design; o que fica secreto são `GEMINI_API_KEY` e `RESEND_API_KEY`, usadas
+   só dentro das functions).
+
+## Painel do vendedor (Supabase Auth)
+
+Quando o vendedor publica um anúncio, `gerar-anuncio` convida o email dele
+via `supabase.auth.admin.inviteUserByEmail` (cria a conta e manda um email
+com link de "criar senha" — nunca uma senha pronta em texto puro). O link
+cai em `definir-senha.html`, que usa o `supabase-js` no navegador pra
+capturar a sessão do link e definir a senha; dali em diante o vendedor entra
+por `vendedor-login.html` (com "esqueci minha senha" via
+`resetPasswordForEmail`).
+
+O painel (`vendedor.html`) não tem nenhum endpoint CRUD customizado — ele
+fala direto com o Postgres via `supabase-js` + RLS (`auth.uid() = anuncios.user_id`),
+então o vendedor só enxerga/edita/exclui os próprios anúncios e só vê os
+interessados dos próprios anúncios.
+
+**Expiração automática (30 dias), sem cron**: a view `anuncios_publicos`
+filtra `status = 'ativo' and publicado_em > now() - interval '30 days'`.
+Reativar um anúncio no painel só atualiza `publicado_em = now()`, resetando
+o prazo — não existe job agendado nem coluna calculada manualmente.
+
+**Pré-requisitos que só você pode configurar** (fora do meu alcance):
+- Conta no [Resend](https://resend.com) + domínio de envio verificado (ou
+  usar o remetente de teste deles no começo), pra `RESEND_API_KEY`.
+- No dashboard do Supabase → Authentication → URL Configuration → Redirect
+  URLs: adicionar a URL de produção de `definir-senha.html` (ex:
+  `https://tabelafipe.site/definir-senha.html`) — sem isso, o Supabase
+  rejeita o redirect dos links de convite/recuperação.
 
 ## Pendências conhecidas
 
@@ -85,6 +127,16 @@ sensíveis + o link do WhatsApp.
 - Fluxo de "quero comprar" ainda é só um placeholder no chat.
 - `anuncio.html` ainda não tem o slot do Google Ads implementado (só o espaço
   reservado), fica pro próximo passo.
+- `SITE_URL` está hardcoded como a URL da Vercel (`gerar-anuncio` e
+  `solicitar-contato`) — trocar pra `https://tabelafipe.site` quando o
+  domínio propagar de vez.
+- `garantirContaVendedor` em `gerar-anuncio` busca o usuário existente via
+  `auth.admin.listUsers({ perPage: 1000 })` — funciona bem na escala atual,
+  mas não escala indefinidamente; se a base de vendedores crescer muito,
+  vale revisar pra uma busca mais direta por email.
+- Sem limite de taxa (rate limit) no "Entrar em contato" — alguém poderia
+  espremer o formulário pra gerar spam de email; não é crítico agora, mas é
+  candidato a hardening futuro.
 - A view `anuncios_publicos` usa `SECURITY DEFINER` (necessário pra ler
   através da tabela `anuncios`, protegida por RLS, sem expor telefone/email) —
   o linter de segurança do Supabase acusa isso como ERROR por padrão; é uma

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tabelafipe.site — meus anúncios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a; --surface:#1e2226; --surface-2:#262b30; --border:#33393f;
+    --amber:#FFB020; --amber-2:#FF8A00; --red:#E14545; --green:#3ecb6e; --text:#EDEEF0; --muted:#8b92a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    color:var(--text); font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .page{width:100%; max-width:760px;}
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:15px; flex-shrink:0;
+  }
+  .topbar .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px;}
+  .topbar .sub{font-size:12px; color:var(--muted);}
+  .topbar-right{margin-left:auto; display:flex; gap:14px; align-items:center;}
+  .topbar-right button{
+    background:none; border:1px solid var(--border); color:var(--muted);
+    padding:6px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .topbar-right button:hover{border-color:var(--amber); color:var(--amber);}
+
+  .status-row{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px;}
+  .spinner{
+    width:18px;height:18px;border-radius:50%; border:2.5px solid var(--border); border-top-color:var(--amber);
+    animation:spin .8s linear infinite; flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .vazio{
+    color:var(--muted); font-size:14px; text-align:center; padding:40px 24px;
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  }
+  .vazio a{color:var(--amber); text-decoration:none; font-weight:600;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:18px; margin-bottom:16px;
+  }
+  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px;}
+  .card-title{font-family:'Oswald',sans-serif; font-weight:600; font-size:16px;}
+  .badge-status{font-size:11px; padding:3px 9px; border-radius:8px; border:1px solid var(--border); flex-shrink:0;}
+  .badge-status.ativo{color:var(--green); border-color:var(--green);}
+  .badge-status.vendido{color:var(--muted);}
+  .badge-status.pausado{color:var(--amber); border-color:var(--amber);}
+  .expira-info{font-size:11.5px; color:var(--muted); margin-bottom:12px;}
+
+  .grid-campos{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .campo label{display:block; font-size:11px; color:var(--muted); margin-bottom:4px;}
+  .campo input, .campo select{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-size:13px; font-family:'Inter',sans-serif;
+  }
+  .campo input:focus, .campo select:focus{outline:none; border-color:var(--amber);}
+
+  .acoes{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .btn{
+    border:none; border-radius:20px; padding:8px 14px; font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .btn.primary{background:linear-gradient(135deg, var(--amber), var(--amber-2)); color:#1a1204;}
+  .btn.ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+  .btn.ghost:hover{border-color:var(--amber); color:var(--amber);}
+  .btn.perigo{background:none; border:1px solid var(--red); color:var(--red);}
+  .btn:disabled{opacity:.6; cursor:default;}
+
+  .msg-salvo{font-size:12px; color:var(--green); margin-bottom:8px;}
+  .msg-erro{font-size:12px; color:var(--red); margin-bottom:8px;}
+
+  .interessados-toggle{
+    background:none; border:none; color:var(--muted); font-size:12.5px; cursor:pointer;
+    padding:0; font-family:'Inter',sans-serif; text-decoration:underline;
+  }
+  .lista-interessados{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+  .interessado{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+    padding:8px 12px; font-size:12.5px;
+  }
+  .interessado b{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topbar">
+    <div class="avatar">FP</div>
+    <div>
+      <div class="name">tabelafipe.site</div>
+      <div class="sub">meus anúncios</div>
+    </div>
+    <div class="topbar-right">
+      <a href="anuncios.html" style="color:var(--muted); font-size:13px; text-decoration:none;">ver anúncios</a>
+      <button id="btnSair">Sair</button>
+    </div>
+  </div>
+
+  <div id="conteudo"><div class="status-row"><div class="spinner"></div> carregando...</div></div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = "https://cklgxrebbjddhybbkzpn.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrbGd4cmViYmpkZGh5YmJrenBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNjEwNTcsImV4cCI6MjEwMDczNzA1N30.jGM0GPbNIFuAYQqVd4_Ikk21JK6jLOW5pCjg7909BSk";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TIPO_LABEL = { carros: "🚗 Carro", motos: "🏍️ Moto", caminhoes: "🚚 Caminhão" };
+const STATUS_LABEL = { ativo: "● ativo", vendido: "vendido", pausado: "pausado" };
+const PNEUS_OPCOES = ["Novo", "Seminovo", "Precisa trocar"];
+
+const conteudo = document.getElementById('conteudo');
+
+document.getElementById('btnSair').onclick = async ()=>{
+  await supabase.auth.signOut();
+  location.href = 'vendedor-login.html';
+};
+
+function diasRestantes(publicadoEm){
+  const expiraEm = new Date(publicadoEm).getTime() + 30 * 24 * 60 * 60 * 1000;
+  const dias = Math.ceil((expiraEm - Date.now()) / (24 * 60 * 60 * 1000));
+  return dias;
+}
+
+async function carregar(){
+  const { data: sessao } = await supabase.auth.getSession();
+  if(!sessao.session){ location.href = 'vendedor-login.html'; return; }
+
+  const { data: anuncios, error } = await supabase
+    .from('anuncios')
+    .select('*')
+    .order('publicado_em', { ascending: false });
+
+  if(error){
+    conteudo.innerHTML = `<div class="vazio">😕 Não consegui carregar seus anúncios agora.</div>`;
+    return;
+  }
+  if(!anuncios.length){
+    conteudo.innerHTML = `<div class="vazio">Você ainda não tem anúncios publicados.<br><a href="consultar.html">Consulte o preço e crie o seu →</a></div>`;
+    return;
+  }
+
+  conteudo.innerHTML = '';
+  anuncios.forEach(a => conteudo.appendChild(criarCard(a)));
+}
+
+function criarCard(a){
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const dias = diasRestantes(a.publicado_em);
+  const expiraTxt = a.status !== 'ativo'
+    ? ''
+    : dias > 0
+      ? `expira em ${dias} dia${dias === 1 ? '' : 's'}`
+      : 'expirado (oculto da listagem pública)';
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-title">${TIPO_LABEL[a.tipo] || a.tipo} · ${a.marca} ${a.modelo} ${a.ano_modelo}</div>
+      <span class="badge-status ${a.status}">${STATUS_LABEL[a.status] || a.status}</span>
+    </div>
+    ${expiraTxt ? `<div class="expira-info">${expiraTxt}</div>` : ''}
+
+    <div class="grid-campos">
+      <div class="campo"><label>Valor desejado</label><input class="c-valor" value="${a.valor_desejado || ''}" /></div>
+      <div class="campo"><label>Cor</label><input class="c-cor" value="${a.cor || ''}" /></div>
+      <div class="campo"><label>Quilometragem</label><input class="c-km" value="${a.quilometragem || ''}" /></div>
+      <div class="campo"><label>Cidade</label><input class="c-cidade" value="${a.cidade || ''}" /></div>
+      <div class="campo"><label>Estado</label><input class="c-estado" value="${a.estado || ''}" maxlength="2" /></div>
+      <div class="campo"><label>Pneus</label>
+        <select class="c-pneus">${PNEUS_OPCOES.map(o=>`<option ${o===a.pneus?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="campo"><label>Estofados</label>
+        <select class="c-estofados">${PNEUS_OPCOES.map(o=>`<option ${o===a.estofados?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+    </div>
+
+    <div id="feedback-${a.id}"></div>
+
+    <div class="acoes">
+      <button class="btn primary btn-salvar">💾 Salvar alterações</button>
+      ${a.status === 'ativo' ? `<button class="btn ghost btn-pausar">⏸ Pausar</button>` : ''}
+      ${a.status !== 'ativo' ? `<button class="btn ghost btn-reativar">▶ Reativar</button>` : ''}
+      ${a.status !== 'vendido' ? `<button class="btn ghost btn-vendido">✅ Marcar como vendido</button>` : ''}
+      <button class="btn perigo btn-excluir">🗑 Excluir</button>
+    </div>
+
+    <button class="interessados-toggle">ver interessados</button>
+    <div class="lista-interessados" hidden></div>
+  `;
+
+  const feedback = card.querySelector(`#feedback-${a.id}`);
+
+  card.querySelector('.btn-salvar').onclick = async ()=>{
+    const btn = card.querySelector('.btn-salvar');
+    btn.disabled = true;
+    const { error } = await supabase.from('anuncios').update({
+      valor_desejado: card.querySelector('.c-valor').value.trim(),
+      cor: card.querySelector('.c-cor').value.trim(),
+      quilometragem: card.querySelector('.c-km').value.trim(),
+      cidade: card.querySelector('.c-cidade').value.trim(),
+      estado: card.querySelector('.c-estado').value.trim().toUpperCase(),
+      pneus: card.querySelector('.c-pneus').value,
+      estofados: card.querySelector('.c-estofados').value,
+    }).eq('id', a.id);
+    btn.disabled = false;
+    feedback.innerHTML = error
+      ? `<div class="msg-erro">Não consegui salvar. Tenta de novo.</div>`
+      : `<div class="msg-salvo">Salvo!</div>`;
+  };
+
+  const mudarStatus = async (novoStatus, resetPublicacao)=>{
+    const payload = { status: novoStatus };
+    if(resetPublicacao) payload.publicado_em = new Date().toISOString();
+    const { error } = await supabase.from('anuncios').update(payload).eq('id', a.id);
+    if(error){ feedback.innerHTML = `<div class="msg-erro">Não consegui atualizar. Tenta de novo.</div>`; return; }
+    carregar();
+  };
+
+  const btnPausar = card.querySelector('.btn-pausar');
+  if(btnPausar) btnPausar.onclick = ()=> mudarStatus('pausado', false);
+
+  const btnReativar = card.querySelector('.btn-reativar');
+  if(btnReativar) btnReativar.onclick = ()=> mudarStatus('ativo', true);
+
+  const btnVendido = card.querySelector('.btn-vendido');
+  if(btnVendido) btnVendido.onclick = ()=> mudarStatus('vendido', false);
+
+  card.querySelector('.btn-excluir').onclick = async ()=>{
+    if(!confirm('Excluir esse anúncio? Não dá pra desfazer.')) return;
+    const { error } = await supabase.from('anuncios').delete().eq('id', a.id);
+    if(error){ feedback.innerHTML = `<div class="msg-erro">Não consegui excluir. Tenta de novo.</div>`; return; }
+    card.remove();
+  };
+
+  const toggleBtn = card.querySelector('.interessados-toggle');
+  const listaWrap = card.querySelector('.lista-interessados');
+  let carregado = false;
+  toggleBtn.onclick = async ()=>{
+    listaWrap.hidden = !listaWrap.hidden;
+    toggleBtn.textContent = listaWrap.hidden ? 'ver interessados' : 'ocultar interessados';
+    if(!listaWrap.hidden && !carregado){
+      carregado = true;
+      const { data: interessados } = await supabase
+        .from('interessados')
+        .select('*')
+        .eq('anuncio_id', a.id)
+        .order('criado_em', { ascending: false });
+      listaWrap.innerHTML = (interessados && interessados.length)
+        ? interessados.map(i => `<div class="interessado"><b>${i.nome}</b> — ${i.telefone} — ${i.email}</div>`).join('')
+        : `<div class="interessado">Ninguém demonstrou interesse ainda.</div>`;
+    }
+  };
+
+  return card;
+}
+
+carregar();
+</script>
+</body>
+</html>

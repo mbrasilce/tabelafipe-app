@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tabelafipe.site — definir senha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a; --surface:#1e2226; --surface-2:#262b30; --border:#33393f;
+    --amber:#FFB020; --amber-2:#FF8A00; --red:#E14545; --text:#EDEEF0; --muted:#8b92a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    color:var(--text); font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .page{width:100%; max-width:380px;}
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:15px; flex-shrink:0;
+  }
+  .topbar .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px;}
+  .topbar .sub{font-size:12px; color:var(--muted);}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:22px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .card h2{font-family:'Oswald',sans-serif; font-size:16px; margin:0 0 16px 0;}
+  label{display:block; font-size:12.5px; color:var(--muted); margin:12px 0 5px 0;}
+  input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:10px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  input:focus{outline:none; border-color:var(--amber);}
+  .btn{
+    width:100%; margin-top:18px; border:none; border-radius:20px; padding:11px 18px;
+    font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg, var(--amber), var(--amber-2)); color:#1a1204;
+  }
+  .btn:disabled{opacity:.6; cursor:default;}
+  .msg-erro{color:var(--red); font-size:13px; margin-top:12px;}
+  .msg-ok{color:#3ecb6e; font-size:13px; margin-top:12px;}
+  .status-row{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px;}
+  .spinner{
+    width:18px;height:18px;border-radius:50%; border:2.5px solid var(--border); border-top-color:var(--amber);
+    animation:spin .8s linear infinite; flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  a.btn-link{display:block; text-align:center; margin-top:14px; font-size:12.5px; color:var(--amber); text-decoration:none;}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topbar">
+    <div class="avatar">FP</div>
+    <div>
+      <div class="name">tabelafipe.site</div>
+      <div class="sub">definir senha</div>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="status-row"><div class="spinner"></div> confirmando o link...</div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = "https://cklgxrebbjddhybbkzpn.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrbGd4cmViYmpkZGh5YmJrenBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNjEwNTcsImV4cCI6MjEwMDczNzA1N30.jGM0GPbNIFuAYQqVd4_Ikk21JK6jLOW5pCjg7909BSk";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const card = document.getElementById('card');
+
+function renderFormSenha(){
+  card.innerHTML = `
+    <h2>Criar sua senha</h2>
+    <label>Nova senha</label>
+    <input id="senha" type="password" placeholder="mínimo 6 caracteres" />
+    <label>Confirmar senha</label>
+    <input id="senha2" type="password" placeholder="repita a senha" />
+    <button class="btn" id="btnSalvar">Salvar e entrar</button>
+    <div id="msg"></div>
+  `;
+  const msg = document.getElementById('msg');
+  document.getElementById('btnSalvar').onclick = async ()=>{
+    const senha = document.getElementById('senha').value;
+    const senha2 = document.getElementById('senha2').value;
+    if(senha.length < 6){ msg.innerHTML = '<div class="msg-erro">A senha precisa ter pelo menos 6 caracteres.</div>'; return; }
+    if(senha !== senha2){ msg.innerHTML = '<div class="msg-erro">As senhas não são iguais.</div>'; return; }
+    const btn = document.getElementById('btnSalvar');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const { error } = await supabase.auth.updateUser({ password: senha });
+    if(error){
+      btn.disabled = false; btn.textContent = 'Salvar e entrar';
+      msg.innerHTML = '<div class="msg-erro">Não consegui salvar a senha. Tenta de novo.</div>';
+      return;
+    }
+    location.href = 'vendedor.html';
+  };
+}
+
+function renderLinkInvalido(){
+  card.innerHTML = `
+    <div class="msg-erro">Esse link expirou ou já foi usado.</div>
+    <a class="btn-link" href="vendedor-login.html">⬅ Voltar pro login</a>
+  `;
+}
+
+// supabase-js já processa o token da URL (detectSessionInUrl) ao inicializar;
+// só precisamos aguardar a sessão aparecer.
+async function iniciar(){
+  const { data } = await supabase.auth.getSession();
+  if(data.session){ renderFormSenha(); return; }
+
+  supabase.auth.onAuthStateChange((event, session)=>{
+    if(session) renderFormSenha();
+  });
+
+  setTimeout(async ()=>{
+    const { data: novoCheck } = await supabase.auth.getSession();
+    if(!novoCheck.session) renderLinkInvalido();
+  }, 2500);
+}
+
+iniciar();
+</script>
+</body>
+</html>

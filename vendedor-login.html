@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tabelafipe.site — painel do vendedor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a; --surface:#1e2226; --surface-2:#262b30; --border:#33393f;
+    --amber:#FFB020; --amber-2:#FF8A00; --red:#E14545; --text:#EDEEF0; --muted:#8b92a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(circle at 50% 0%, #1b1f23 0%, var(--bg) 60%);
+    color:var(--text); font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .page{width:100%; max-width:380px;}
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--amber), var(--amber-2), var(--amber));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:600; color:#14171a; font-size:15px; flex-shrink:0;
+  }
+  .topbar .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px;}
+  .topbar .sub{font-size:12px; color:var(--muted);}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:22px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .card h2{font-family:'Oswald',sans-serif; font-size:16px; margin:0 0 16px 0;}
+  label{display:block; font-size:12.5px; color:var(--muted); margin:12px 0 5px 0;}
+  input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:10px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  input:focus{outline:none; border-color:var(--amber);}
+  .btn{
+    width:100%; margin-top:18px; border:none; border-radius:20px; padding:11px 18px;
+    font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg, var(--amber), var(--amber-2)); color:#1a1204;
+  }
+  .btn:disabled{opacity:.6; cursor:default;}
+  .link-secundario{
+    display:block; text-align:center; margin-top:14px; font-size:12.5px;
+    color:var(--muted); text-decoration:none; background:none; border:none; cursor:pointer;
+    font-family:'Inter',sans-serif; width:100%;
+  }
+  .link-secundario:hover{color:var(--amber);}
+  .msg-erro{color:var(--red); font-size:13px; margin-top:12px;}
+  .msg-ok{color:#3ecb6e; font-size:13px; margin-top:12px;}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topbar">
+    <div class="avatar">FP</div>
+    <div>
+      <div class="name">tabelafipe.site</div>
+      <div class="sub">painel do vendedor</div>
+    </div>
+  </div>
+
+  <div class="card" id="card"></div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = "https://cklgxrebbjddhybbkzpn.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrbGd4cmViYmpkZGh5YmJrenBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNjEwNTcsImV4cCI6MjEwMDczNzA1N30.jGM0GPbNIFuAYQqVd4_Ikk21JK6jLOW5pCjg7909BSk";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const card = document.getElementById('card');
+
+async function irParaPainelSeJaLogado(){
+  const { data } = await supabase.auth.getSession();
+  if(data.session) location.href = 'vendedor.html';
+}
+irParaPainelSeJaLogado();
+
+function renderLogin(){
+  card.innerHTML = `
+    <h2>Entrar</h2>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="seu@email.com" />
+    <label>Senha</label>
+    <input id="senha" type="password" placeholder="••••••••" />
+    <button class="btn" id="btnEntrar">Entrar</button>
+    <button class="link-secundario" id="btnEsqueci">Esqueci minha senha</button>
+    <div id="msg"></div>
+  `;
+  const msg = document.getElementById('msg');
+  document.getElementById('btnEntrar').onclick = async ()=>{
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value;
+    if(!email || !senha){ msg.innerHTML = '<div class="msg-erro">Preenche email e senha.</div>'; return; }
+    const btn = document.getElementById('btnEntrar');
+    btn.disabled = true; btn.textContent = 'Entrando...';
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if(error){
+      btn.disabled = false; btn.textContent = 'Entrar';
+      msg.innerHTML = '<div class="msg-erro">Email ou senha incorretos.</div>';
+      return;
+    }
+    location.href = 'vendedor.html';
+  };
+  document.getElementById('btnEsqueci').onclick = renderRecuperar;
+}
+
+function renderRecuperar(){
+  card.innerHTML = `
+    <h2>Recuperar senha</h2>
+    <label>Email da sua conta de vendedor</label>
+    <input id="email" type="email" placeholder="seu@email.com" />
+    <button class="btn" id="btnEnviar">Enviar link de recuperação</button>
+    <button class="link-secundario" id="btnVoltar">Voltar ao login</button>
+    <div id="msg"></div>
+  `;
+  const msg = document.getElementById('msg');
+  document.getElementById('btnVoltar').onclick = renderLogin;
+  document.getElementById('btnEnviar').onclick = async ()=>{
+    const email = document.getElementById('email').value.trim();
+    if(!email){ msg.innerHTML = '<div class="msg-erro">Informa o email.</div>'; return; }
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${location.origin}/definir-senha.html`,
+    });
+    btn.disabled = false; btn.textContent = 'Enviar link de recuperação';
+    if(error){
+      msg.innerHTML = '<div class="msg-erro">Não consegui enviar agora. Tenta de novo.</div>';
+      return;
+    }
+    msg.innerHTML = '<div class="msg-ok">Se esse email tiver um anúncio publicado, mandamos um link de recuperação.</div>';
+  };
+}
+
+renderLogin();
+</script>
+</body>
+</html>

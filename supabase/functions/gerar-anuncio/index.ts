@@ -5,18 +5,41 @@
 // Gera o texto de um anúncio de venda usando a API nativa do Gemini
 // (generativelanguage.googleapis.com). A chave fica só aqui no servidor,
 // nunca é exposta ao navegador. Se `publicar` for true, grava o anúncio
-// na tabela `anuncios` (usada pela página pública /anuncios.html).
+// na tabela `anuncios` (usada pela página pública /anuncios.html) e
+// garante uma conta no Supabase Auth pro vendedor (convite por email
+// com link de criar senha, pra ele acessar /vendedor.html).
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
+// TODO: trocar para https://tabelafipe.site quando o domínio estiver 100% propagado.
+const SITE_URL = "https://tabelafipe-app-psi.vercel.app";
+
 // Injetadas automaticamente pelo Supabase em toda Edge Function.
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
+
+// Garante que existe uma conta pro vendedor (convite por email com link de
+// criar senha) e devolve o user_id, criando ou reaproveitando a existente.
+async function garantirContaVendedor(email: string): Promise<string | null> {
+  const convite = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${SITE_URL}/definir-senha.html`,
+  });
+
+  if (!convite.error && convite.data.user) {
+    return convite.data.user.id;
+  }
+
+  // Já tem conta (email repetido) — busca o id existente pra reaproveitar.
+  const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error) return null;
+  const existente = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  return existente?.id ?? null;
+}
 
 const TIPO_SINGULAR: Record<string, string> = {
   carros: "carro",
@@ -108,6 +131,8 @@ Deno.serve(async (req) => {
 
   let publicado = false;
   if (dados.publicar) {
+    const userId = dados.email ? await garantirContaVendedor(String(dados.email)) : null;
+
     const { error } = await supabase.from("anuncios").insert({
       tipo: dados.tipo,
       marca: dados.marca,
@@ -124,6 +149,9 @@ Deno.serve(async (req) => {
       telefone: dados.telefone,
       email: dados.email ?? null,
       texto,
+      user_id: userId,
+      status: "ativo",
+      publicado_em: new Date().toISOString(),
     });
     publicado = !error;
   }

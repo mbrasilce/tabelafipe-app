@@ -81,28 +81,66 @@ create table if not exists anuncios (
   telefone text not null,
   email text,
   texto text not null,
-  criado_em timestamptz default now()
+  criado_em timestamptz default now(),
+  -- dono do anúncio (Supabase Auth) + ciclo de vida
+  user_id uuid references auth.users(id) on delete set null,
+  status text not null default 'ativo' check (status in ('ativo', 'vendido', 'pausado')),
+  publicado_em timestamptz not null default now() -- resetado ao reativar; controla a expiração de 30 dias
 );
 
--- RLS ligado, sem policies para anon/authenticated: só a service_role
--- (usada pela Edge Function gerar-anuncio) pode inserir/ler a tabela base.
+-- RLS ligado. Inserts continuam só via service_role (Edge Functions).
+-- Leitura/edição/exclusão do próprio anúncio: liberada pro dono via RLS
+-- (o painel /vendedor.html usa a sessão do vendedor direto, sem endpoints
+-- customizados).
 alter table anuncios enable row level security;
+
+drop policy if exists "vendedor le proprios anuncios" on anuncios;
+create policy "vendedor le proprios anuncios" on anuncios for select using (auth.uid() = user_id);
+
+drop policy if exists "vendedor atualiza proprios anuncios" on anuncios;
+create policy "vendedor atualiza proprios anuncios" on anuncios for update using (auth.uid() = user_id);
+
+drop policy if exists "vendedor apaga proprios anuncios" on anuncios;
+create policy "vendedor apaga proprios anuncios" on anuncios for delete using (auth.uid() = user_id);
 
 create index if not exists idx_anuncios_criado_em on anuncios (criado_em desc);
 create index if not exists idx_anuncios_tipo on anuncios (tipo);
+create index if not exists idx_anuncios_user_id on anuncios (user_id);
 
--- View pública consumida pela página /anuncios.html: nunca expõe telefone
--- ou email em texto puro, só um link pronto do WhatsApp. SECURITY DEFINER
--- é intencional aqui — é o que permite ela ler através da tabela protegida
--- por RLS acima, expondo só as colunas selecionadas.
-create or replace view anuncios_publicos
+-- Interessados (leads) por anúncio — gerados pelo fluxo "Entrar em contato"
+-- em /anuncios.html, via Edge Function solicitar-contato.
+create table if not exists interessados (
+  id bigint generated always as identity primary key,
+  anuncio_id bigint not null references anuncios(id) on delete cascade,
+  nome text not null,
+  email text not null,
+  telefone text not null,
+  criado_em timestamptz default now()
+);
+alter table interessados enable row level security;
+
+create index if not exists idx_interessados_anuncio on interessados (anuncio_id);
+
+drop policy if exists "vendedor le interessados dos proprios anuncios" on interessados;
+create policy "vendedor le interessados dos proprios anuncios" on interessados for select using (
+  exists (select 1 from anuncios a where a.id = interessados.anuncio_id and a.user_id = auth.uid())
+);
+
+-- View pública consumida por /anuncios.html: nunca expõe telefone/email —
+-- o contato agora é mediado por email (fluxo "Entrar em contato" +
+-- Edge Function solicitar-contato), não mais um link direto de WhatsApp.
+-- Filtra por status ativo e por publicado_em dentro dos últimos 30 dias
+-- (isso resolve a expiração sem precisar de cron job). SECURITY DEFINER é
+-- intencional aqui — é o que permite ler através da tabela protegida por
+-- RLS acima, expondo só as colunas selecionadas.
+drop view if exists anuncios_publicos;
+create view anuncios_publicos
 with (security_invoker = false)
 as
-select
-  id, tipo, marca, modelo, ano_modelo, valor_fipe, valor_desejado,
-  estado, cidade, cor, quilometragem, pneus, estofados, texto, criado_em,
-  ('https://wa.me/55' || regexp_replace(telefone, '\D', '', 'g')) as whatsapp_link
+select id, tipo, marca, modelo, ano_modelo, valor_fipe, valor_desejado,
+       estado, cidade, cor, quilometragem, pneus, estofados, texto, criado_em
 from anuncios
-order by criado_em desc;
+where status = 'ativo' and publicado_em > now() - interval '30 days'
+order by publicado_em desc;
 
 grant select on anuncios_publicos to anon, authenticated;
