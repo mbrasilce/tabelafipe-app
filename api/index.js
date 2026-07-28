@@ -186,17 +186,19 @@ function escapeHtml(s) {
 }
 
 function formatarBusca(b) {
-  return [b.marca, b.modelo, b.ano_modelo].filter(Boolean).join(" ");
+  const base = [b.marca, b.modelo, b.ano_modelo].filter(Boolean).join(" ");
+  return b.valor ? `${base} - ${b.valor}` : base;
 }
 
 // Busca as últimas pesquisas distintas (evita mostrar a mesma repetida
-// se alguém buscou o mesmo veículo duas vezes seguidas).
+// se alguém buscou o mesmo veículo duas vezes seguidas). Usa veiculos_cache
+// em vez de buscas_log porque já tem o valor FIPE junto, sem precisar de join.
 async function buscarRecentes() {
   try {
     const { data, error } = await supabase
-      .from("buscas_log")
-      .select("marca, modelo, ano_modelo, criado_em")
-      .order("criado_em", { ascending: false })
+      .from("veiculos_cache")
+      .select("marca, modelo, ano_modelo, valor, atualizado_em")
+      .order("atualizado_em", { ascending: false })
       .limit(8);
     if (error || !data) return [];
 
