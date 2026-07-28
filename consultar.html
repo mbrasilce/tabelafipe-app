@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){var v=localStorage.getItem('tf_zoom');if(v)document.documentElement.style.zoom=v+'%';})();</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1QS16BMJ91"></script>
 <script>
@@ -238,6 +239,18 @@
     display:flex; align-items:center; justify-content:center;
     color:#ffffff;
   }
+
+  .a11y-fontctrl{
+    position:fixed; top:14px; right:14px; z-index:999;
+    display:flex; gap:4px; background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:5px; box-shadow:0 10px 24px -10px rgba(45,45,45,0.25);
+  }
+  .a11y-fontctrl button{
+    border:none; background:var(--surface-2); color:var(--text);
+    width:26px; height:26px; border-radius:50%; font-size:11px; font-weight:700;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .a11y-fontctrl button:hover{ background:var(--blue); color:#fff; }
 </style>
 </head>
 <body>
@@ -666,6 +679,28 @@ sendBtn.onclick = sendPadrao;
 freeText.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
 
 iniciar();
+</script>
+
+<div class="a11y-fontctrl" role="group" aria-label="Ajustar tamanho da fonte">
+  <button type="button" data-step="-1" aria-label="Diminuir fonte">A-</button>
+  <button type="button" data-step="0" aria-label="Tamanho padrão de fonte">A</button>
+  <button type="button" data-step="1" aria-label="Aumentar fonte">A+</button>
+</div>
+<script>
+(function(){
+  var STEPS=[90,100,110,120,130];
+  var salvo=parseInt(localStorage.getItem('tf_zoom'),10);
+  var i=STEPS.indexOf(salvo); if(i===-1) i=STEPS.indexOf(100);
+  document.querySelectorAll('.a11y-fontctrl button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var step=btn.getAttribute('data-step');
+      i = step==='0' ? STEPS.indexOf(100) : Math.min(STEPS.length-1, Math.max(0, i+parseInt(step,10)));
+      var novo=STEPS[i];
+      document.documentElement.style.zoom = novo + '%';
+      localStorage.setItem('tf_zoom', novo);
+    });
+  });
+})();
 </script>
 </body>
 </html>
