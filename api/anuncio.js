@@ -22,6 +22,19 @@ function escapeHtml(s) {
   }[c]));
 }
 
+function slugify(s) {
+  return String(s || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function urlAnuncio(a) {
+  const slug = slugify([a.marca, a.modelo, a.ano_modelo, a.cidade].filter(Boolean).join(" "));
+  return `${SITE_URL}/anuncio/${a.id}${slug ? "-" + slug : ""}`;
+}
+
 function paginaNaoEncontrada(res) {
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -86,12 +99,12 @@ module.exports = async (req, res) => {
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#33A9F4">
-<link rel="canonical" href="${SITE_URL}/anuncio/${a.id}">
+<link rel="canonical" href="${urlAnuncio(a)}">
 <meta name="description" content="${escapeHtml(descricao)}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeHtml(titulo)} — tabelafipe.site">
 <meta property="og:description" content="${escapeHtml(descricao)}">
-<meta property="og:url" content="${SITE_URL}/anuncio/${a.id}">
+<meta property="og:url" content="${urlAnuncio(a)}">
 <title>${escapeHtml(titulo)}${local ? ` — ${escapeHtml(local)}` : ""} | tabelafipe.site</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">

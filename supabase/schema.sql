@@ -48,6 +48,12 @@ create index if not exists idx_veiculos_cache_busca
 create index if not exists idx_buscas_log_criado_em
   on buscas_log (criado_em desc);
 
+-- RLS ligado, sem policies: só a service_role (usada pelas functions da
+-- Vercel) acessa. Nenhum código do cliente lê essas tabelas direto.
+alter table veiculos_cache enable row level security;
+alter table buscas_log enable row level security;
+alter table fontes_quota enable row level security;
+
 -- Função usada pela API para incrementar (ou criar) a contagem de uso de uma fonte
 create or replace function incrementar_quota(p_fonte text, p_periodo text, p_limite integer)
 returns void as $$

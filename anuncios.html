@@ -172,6 +172,18 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const TIPO_LABEL = { carros: "🚗 Carro", motos: "🏍️ Moto", caminhoes: "🚚 Caminhão" };
 
+function slugify(s){
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+function urlAnuncio(a){
+  const slug = slugify([a.marca, a.modelo, a.ano_modelo, a.cidade].filter(Boolean).join(' '));
+  return `/anuncio/${a.id}${slug ? '-' + slug : ''}`;
+}
+
 const conteudo = document.getElementById('conteudo');
 const filtros = document.getElementById('filtros');
 let tipoAtual = "";
@@ -225,7 +237,7 @@ function criarCard(a){
     </div>
     <div class="card-texto">${a.texto || ''}</div>
     <div class="card-acoes">
-      <a class="ver-mais" href="/anuncio/${a.id}">Ver mais →</a>
+      <a class="ver-mais" href="${urlAnuncio(a)}">Ver mais →</a>
     </div>
   `;
   return card;
