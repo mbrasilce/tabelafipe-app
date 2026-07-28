@@ -52,7 +52,7 @@ const TEMPLATE = `<!DOCTYPE html>
     --muted:#758A9C;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;}
+  html{height:100%;}
   body{
     margin:0;
     background:radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg) 60%);
@@ -64,6 +64,11 @@ const TEMPLATE = `<!DOCTYPE html>
     align-items:center;
     justify-content:center;
     padding:24px;
+  }
+  /* em telas baixas o conteúdo passa de 1 viewport de altura — centralizar
+     nesse caso corta topo/fundo (ex: logo e o marquee do rodapé) */
+  @media (max-width:480px){
+    body{ justify-content:flex-start; padding-top:36px; }
   }
 
   .hero{text-align:center; max-width:480px; margin-bottom:34px;}

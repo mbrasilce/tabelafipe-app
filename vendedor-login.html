@@ -30,12 +30,13 @@
     --blue:#33A9F4; --blue-2:#20A1FA; --red:#E14545; --text:#2D2D2D; --muted:#758A9C;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;}
+  html{height:100%;}
   body{
     margin:0; background:radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg) 60%);
     color:var(--text); font-family:'Inter',system-ui,sans-serif;
     min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
   }
+  @media (max-width:480px){ body{ justify-content:flex-start; padding-top:36px; } }
   .page{width:100%; max-width:380px;}
   .topbar{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
   .brand-logo{height:34px; width:auto; flex-shrink:0; display:block;}
