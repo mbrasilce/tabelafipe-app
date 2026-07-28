@@ -54,19 +54,11 @@
     border-bottom:1px solid var(--border);
     background:linear-gradient(180deg, #ffffff, #F7FAFC);
   }
-  .avatar{
-    width:38px;height:38px;border-radius:50%;
-    background:conic-gradient(from 220deg, var(--blue), var(--blue-2), var(--blue));
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Oswald',sans-serif; font-weight:600; color:#ffffff; font-size:15px;
-    flex-shrink:0;
-  }
+  .brand-logo{height:34px; width:auto; flex-shrink:0; display:block;}
   .header-text{flex:1;}
   .header-text .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; letter-spacing:.3px;}
   .header-text .status{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:5px;}
   .dot{width:6px;height:6px;border-radius:50%;background:#3ecb6e;display:inline-block;}
-  .header-back{color:var(--muted); font-size:12px; text-decoration:none;}
-  .header-back:hover{color:var(--blue);}
 
   .chat{
     flex:1;
@@ -220,12 +212,11 @@
 
 <div class="phone">
   <div class="header">
-    <div class="avatar">FP</div>
+    <a href="index.html"><img class="brand-logo" src="logo_tabela_fipe_site_transparente.png" alt="TabelaFipe.Site"></a>
     <div class="header-text">
       <div class="name">Fipe Assistente</div>
       <div class="status"><span class="dot"></span> online agora</div>
     </div>
-    <a class="header-back" href="index.html">← início</a>
   </div>
 
   <div class="chat" id="chat"></div>

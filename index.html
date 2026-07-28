@@ -33,13 +33,12 @@
   }
 
   .hero{text-align:center; max-width:480px; margin-bottom:34px;}
-  .logo{
-    width:56px;height:56px;border-radius:50%; margin:0 auto 16px auto;
-    background:conic-gradient(from 220deg, var(--blue), var(--blue-2), var(--blue));
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Oswald',sans-serif; font-weight:600; color:#ffffff; font-size:20px;
+  .hero a.logo-link{display:inline-block;}
+  .hero .logo-img{width:240px; max-width:80vw; height:auto; margin-bottom:12px;}
+  h1{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
   }
-  h1{font-family:'Oswald',sans-serif; font-weight:600; font-size:26px; margin:0 0 8px 0; letter-spacing:.3px;}
   .hero p{color:var(--muted); font-size:14.5px; line-height:1.5; margin:0;}
 
   .cards{display:flex; flex-wrap:wrap; gap:16px; justify-content:center; max-width:640px; width:100%;}
@@ -65,7 +64,9 @@
 <body>
 
 <div class="hero">
-  <div class="logo">FP</div>
+  <a class="logo-link" href="index.html">
+    <img class="logo-img" src="logo_tabela_fipe_site_transparente.png" alt="TabelaFipe.Site">
+  </a>
   <h1>tabelafipe.site</h1>
   <p>Consulte o preço FIPE do seu veículo em segundos ou dê uma olhada nos anúncios de quem já está vendendo.</p>
 </div>
