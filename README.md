@@ -4,6 +4,7 @@
 
 ```
 api/
+  index.js             -> renderiza a home no servidor (não é estático — ver seção própria)
   fipe-lookup.js       -> cache Supabase + fallback entre fontes
   fipe-options.js      -> catálogo (marcas/modelos/anos) via Parallelum
   lib/sources.js       -> adapters de cada fonte externa (Parallelum, fipeapi, fipe.online)
@@ -14,7 +15,6 @@ supabase/
                                         anuncios e convida o vendedor (Supabase Auth)
   functions/solicitar-contato/      -> Edge Function: registra o interessado e manda os
                                         emails (Resend) — pro interessado e pro vendedor
-index.html             -> página inicial: escolher entre Consultar e Ver anúncios
 consultar.html         -> chat guiado (pesquisa de preço + fluxo de venda)
 anuncio.html           -> mostra o texto gerado do SEU anúncio (espaço p/ Google Ads futuramente)
 anuncios.html          -> listagem pública de anúncios (lê a view anuncios_publicos)
@@ -92,6 +92,36 @@ essas colunas.
    design; o que fica secreto são `GEMINI_API_KEY` e `RESEND_API_KEY`, usadas
    só dentro das functions).
 
+## Home renderizada no servidor (SEO)
+
+`index.html` não existe como arquivo estático — a home é a Edge Function
+`api/index.js` (Node, roda no servidor a cada request), com o HTML embutido
+no próprio arquivo (não lido de outro `.html`, pra não depender do bundler
+da Vercel incluir um arquivo extra — isso já causou um deploy travado, ver
+histórico do commit). O `vercel.json` tem `rewrites` mapeando `/` e
+`/index.html` pra `/api/index`.
+
+O motivo de ser server-rendered: a home mostra um marquee com as duas
+últimas pesquisas feitas no site ("Pesquisaram: ..."), puxando de
+`buscas_log` (só marca/modelo/ano, nunca o IP). Pra isso valer alguma coisa
+pra SEO, o texto precisa estar no HTML que o crawler recebe na primeira
+resposta — buscar via `fetch()` no navegador depois do carregamento não
+conta (Google trata como sinal fraco, outros crawlers nem executam JS).
+Resposta tem `Cache-Control: public, max-age=60, stale-while-revalidate=300`
+pra não bater no Supabase a cada request. Se a consulta falhar ou não
+houver pesquisas ainda, o marquee simplesmente não aparece — nunca quebra a
+home.
+
+## Google Analytics e Google AdSense
+
+O tag do GA4 (`gtag.js`, `G-1QS16BMJ91`) e o loader do AdSense
+(`ca-pub-9655532802163165`) estão no `<head>` de toda página — inclusive
+`api/index.js` — o mais alto possível, conforme os guias oficiais de cada
+um. Tem também um `ads.txt` na raiz com a entrada padrão do Google. O
+AdSense está em modo Auto ads (sem unidades manuais); se quiser controlar
+onde os anúncios aparecem, dá pra adicionar blocos `<ins class="adsbygoogle">`
+com `data-ad-slot` específico depois.
+
 ## Painel do vendedor (Supabase Auth)
 
 Quando o vendedor publica um anúncio, `gerar-anuncio` convida o email dele
@@ -137,6 +167,11 @@ o prazo — não existe job agendado nem coluna calculada manualmente.
 - Sem limite de taxa (rate limit) no "Entrar em contato" — alguém poderia
   espremer o formulário pra gerar spam de email; não é crítico agora, mas é
   candidato a hardening futuro.
+- Cuidado com `"includeFiles"` no `vercel.json`: usar isso pra empacotar um
+  `.html` externo junto de uma function (`api/index.js`) travou o build da
+  Vercel indefinidamente (status `UNKNOWN`, nunca terminava). A solução foi
+  embutir o HTML como string direto no `.js` em vez de ler de arquivo — se
+  for mexer em `api/index.js`, mantenha assim.
 - A view `anuncios_publicos` usa `SECURITY DEFINER` (necessário pra ler
   através da tabela `anuncios`, protegida por RLS, sem expor telefone/email) —
   o linter de segurança do Supabase acusa isso como ERROR por padrão; é uma
@@ -145,5 +180,6 @@ o prazo — não existe job agendado nem coluna calculada manualmente.
 - `veiculos_cache`, `buscas_log` e `fontes_quota` ainda estão sem RLS (só a
   service_role acessa hoje, via Vercel, então não é crítico, mas fica pendente
   de decisão).
-- Domínio `tabelafipe.site` ainda precisa apontar para a Vercel (nameservers
-  ou registro A/CNAME, dependendo de onde está registrado).
+- Domínio `tabelafipe.site` configurado via registro A na GoDaddy
+  (`@` → `216.198.79.1`, `www` → CNAME pro próprio domínio) — já validado
+  com certificado ativo na Vercel.

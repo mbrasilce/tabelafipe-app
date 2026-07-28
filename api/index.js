@@ -1,8 +1,31 @@
-<!DOCTYPE html>
+// api/index.js
+// Renderiza a home no servidor (não é um arquivo estático) só pra poder
+// injetar as últimas pesquisas reais no HTML antes de responder — assim
+// o texto já está lá pros crawlers de SEO, sem depender de fetch no
+// navegador (que o Google trata como sinal fraco e outros nem executam).
+//
+// O HTML fica embutido aqui (em vez de lido de um arquivo à parte) pra
+// não depender do bundler da Vercel incluir um arquivo extra no deploy.
+const { createClient } = require("@supabase/supabase-js");
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const TEMPLATE = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1QS16BMJ91"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1QS16BMJ91');
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9655532802163165"
      crossorigin="anonymous"></script>
 <link rel="icon" href="/favicon/favicon.ico" sizes="any">
@@ -12,6 +35,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#33A9F4">
+<link rel="canonical" href="https://tabelafipe.site/">
 <title>tabelafipe.site</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -68,6 +92,23 @@
   .card .title{font-family:'Oswald',sans-serif; font-weight:600; font-size:17px;}
   .card .desc{color:var(--muted); font-size:13px; line-height:1.5;}
   .card .cta{margin-top:6px; font-size:13px; font-weight:600; color:var(--blue);}
+
+  .marquee-wrap{
+    width:100%; max-width:640px; margin-top:26px; padding-top:14px;
+    border-top:1px solid var(--border); overflow:hidden;
+  }
+  .marquee-track{
+    display:flex; gap:56px; width:max-content; white-space:nowrap;
+    font-size:12.5px; color:var(--muted);
+    animation:marquee-scroll 22s linear infinite;
+  }
+  @keyframes marquee-scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .marquee-track{ animation:none; overflow-x:auto; }
+  }
 </style>
 </head>
 <body>
@@ -97,5 +138,66 @@
 
 <a href="vendedor-login.html" style="margin-top:28px; color:var(--muted); font-size:12.5px; text-decoration:none;">Sou vendedor, entrar no meu painel →</a>
 
+<!--RECENTES-->
+
 </body>
 </html>
+`;
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function formatarBusca(b) {
+  return [b.marca, b.modelo, b.ano_modelo].filter(Boolean).join(" ");
+}
+
+// Busca as últimas pesquisas distintas (evita mostrar a mesma repetida
+// se alguém buscou o mesmo veículo duas vezes seguidas).
+async function buscarRecentes() {
+  try {
+    const { data, error } = await supabase
+      .from("buscas_log")
+      .select("marca, modelo, ano_modelo, criado_em")
+      .order("criado_em", { ascending: false })
+      .limit(8);
+    if (error || !data) return [];
+
+    const vistas = new Set();
+    const unicas = [];
+    for (const b of data) {
+      const texto = formatarBusca(b);
+      if (!texto || vistas.has(texto)) continue;
+      vistas.add(texto);
+      unicas.push(texto);
+      if (unicas.length === 2) break;
+    }
+    return unicas;
+  } catch {
+    return [];
+  }
+}
+
+function montarMarquee(itens) {
+  if (!itens.length) return "";
+  const texto = escapeHtml(`Pesquisaram: ${itens.join("  ·  ")}`);
+  // o texto aparece duplicado dentro da faixa pra animação rodar em loop
+  // contínuo (translateX(-50%)) sem dar um "salto" visível no final.
+  return `<div class="marquee-wrap">
+    <div class="marquee-track">
+      <span>${texto}</span>
+      <span>${texto}</span>
+    </div>
+  </div>`;
+}
+
+module.exports = async (req, res) => {
+  const recentes = await buscarRecentes();
+  const html = TEMPLATE.replace("<!--RECENTES-->", montarMarquee(recentes));
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  res.status(200).send(html);
+};
