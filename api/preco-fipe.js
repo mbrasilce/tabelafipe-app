@@ -82,6 +82,30 @@ module.exports = async (req, res) => {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>(function(){var v=localStorage.getItem('tf_zoom');if(v)document.documentElement.style.zoom=v+'%';})();</script>
+<!-- Consentimento de cookies (Google Consent Mode v2) — nega por padrão até o
+     visitante decidir no banner; aplica a escolha salva se já existir. -->
+<script>
+(function(){
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  window.gtag = gtag;
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    wait_for_update: 500
+  });
+  if (localStorage.getItem('tf_consent') === 'aceito') {
+    gtag('consent', 'update', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted'
+    });
+  }
+})();
+</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1QS16BMJ91"></script>
 <script>
@@ -163,6 +187,24 @@ module.exports = async (req, res) => {
     cursor:pointer; font-family:'Inter',sans-serif;
   }
   .a11y-fontctrl button:hover{ background:var(--blue); color:#fff; }
+
+  .cookie-banner{
+    position:fixed; right:14px; bottom:14px; z-index:1000; max-width:300px;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px 16px; box-shadow:0 10px 24px -10px rgba(45,45,45,0.25);
+    font-size:12.5px; line-height:1.5; color:var(--text);
+  }
+  .cookie-banner a{ color:var(--blue); }
+  .cookie-banner-botoes{ display:flex; gap:8px; margin-top:10px; }
+  .cookie-banner-botoes button{
+    flex:1; border:none; border-radius:14px; padding:8px 10px; font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  #cookieAceitar{ background:linear-gradient(135deg, var(--blue), var(--blue-2)); color:#fff; }
+  #cookieRecusar{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  @media (max-width:480px){
+    .cookie-banner{ left:14px; right:14px; max-width:none; bottom:70px; }
+  }
 </style>
 </head>
 <body>
@@ -221,6 +263,34 @@ module.exports = async (req, res) => {
       localStorage.setItem('tf_zoom', novo);
     });
   });
+})();
+</script>
+
+<div class="cookie-banner" id="cookieBanner" hidden>
+  <p>Usamos cookies para estatísticas e anúncios. Você pode aceitar ou recusar — isso não afeta o uso do site. <a href="/privacidade.html">Saiba mais</a>.</p>
+  <div class="cookie-banner-botoes">
+    <button type="button" id="cookieRecusar">Recusar</button>
+    <button type="button" id="cookieAceitar">Aceitar</button>
+  </div>
+</div>
+<script>
+(function(){
+  var banner = document.getElementById('cookieBanner');
+  if (!localStorage.getItem('tf_consent')) banner.hidden = false;
+  function decidir(valor){
+    localStorage.setItem('tf_consent', valor);
+    banner.hidden = true;
+    if (valor === 'aceito' && window.gtag) {
+      gtag('consent', 'update', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted'
+      });
+    }
+  }
+  document.getElementById('cookieAceitar').addEventListener('click', function(){ decidir('aceito'); });
+  document.getElementById('cookieRecusar').addEventListener('click', function(){ decidir('recusado'); });
 })();
 </script>
 </body>

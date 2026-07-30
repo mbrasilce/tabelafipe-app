@@ -35,6 +35,7 @@ module.exports = async (req, res) => {
     { loc: `${SITE_URL}/consultar.html`, changefreq: "weekly", priority: "0.8" },
     { loc: `${SITE_URL}/anuncios.html`, changefreq: "daily", priority: "0.8" },
     { loc: `${SITE_URL}/noticias.html`, changefreq: "hourly", priority: "0.7" },
+    { loc: `${SITE_URL}/privacidade.html`, changefreq: "yearly", priority: "0.3" },
   ];
 
   const { data: anuncios } = await supabase

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){var v=localStorage.getItem('tf_zoom');if(v)document.documentElement.style.zoom=v+'%';})();</script>
+<!-- Consentimento de cookies (Google Consent Mode v2) — nega por padrão até o
+     visitante decidir no banner; aplica a escolha salva se já existir. -->
+<script>
+(function(){
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  window.gtag = gtag;
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    wait_for_update: 500
+  });
+  if (localStorage.getItem('tf_consent') === 'aceito') {
+    gtag('consent', 'update', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted'
+    });
+  }
+})();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1QS16BMJ91"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1QS16BMJ91');
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9655532802163165"
+     crossorigin="anonymous"></script>
+<link rel="icon" href="/favicon/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#33A9F4">
+<link rel="canonical" href="https://tabelafipe.site/privacidade.html">
+<meta name="description" content="Como o tabelafipe.site usa cookies, Google Analytics, AdSense e seus dados — e como você pode gerenciar suas preferências de privacidade.">
+<title>Privacidade e cookies — tabelafipe.site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F4F7; --surface:#FFFFFF; --surface-2:#EAF1F7; --border:#D3DCE4;
+    --blue:#33A9F4; --blue-2:#20A1FA; --text:#2D2D2D; --muted:#758A9C;
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;}
+  body{
+    margin:0; background:radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg) 60%);
+    color:var(--text); font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  .page{width:100%; max-width:640px;}
+  .topbar{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+  .brand-logo{height:34px; width:auto; flex-shrink:0; display:block;}
+  .topbar .name{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px;}
+  .topbar-right{margin-left:auto;}
+  .topbar-right a{color:var(--muted); font-size:13px; text-decoration:none;}
+  .topbar-right a:hover{color:var(--blue);}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:26px; display:flex; flex-direction:column; gap:16px;
+    box-shadow:0 20px 40px -20px rgba(45,45,45,0.18);
+    font-size:14px; line-height:1.65;
+  }
+  .card h1{font-family:'Oswald',sans-serif; font-weight:600; font-size:22px; margin:0;}
+  .card h2{font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; margin:10px 0 0;}
+  .card p, .card li{margin:0;}
+  .card ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px;}
+  .card .muted{color:var(--muted); font-size:12.5px;}
+  .card table{border-collapse:collapse; width:100%; font-size:13px;}
+  .card th, .card td{text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); vertical-align:top;}
+  .card th{color:var(--muted); font-weight:600;}
+
+  .btn-preferencias{
+    align-self:flex-start; border:none; border-radius:20px; padding:10px 18px;
+    font-size:13.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg, var(--blue), var(--blue-2)); color:#ffffff;
+  }
+
+  .voltar{display:inline-block; margin-top:18px; color:var(--muted); font-size:13px; text-decoration:none;}
+  .voltar:hover{color:var(--blue);}
+
+  .a11y-fontctrl{
+    position:fixed; bottom:14px; left:14px; z-index:999;
+    display:flex; gap:4px; background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:5px; box-shadow:0 10px 24px -10px rgba(45,45,45,0.25);
+  }
+  .a11y-fontctrl button{
+    border:none; background:var(--surface-2); color:var(--text);
+    width:30px; height:30px; border-radius:50%; font-size:12px; font-weight:700;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .a11y-fontctrl button:hover{ background:var(--blue); color:#fff; }
+
+  .cookie-banner{
+    position:fixed; right:14px; bottom:14px; z-index:1000; max-width:300px;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px 16px; box-shadow:0 10px 24px -10px rgba(45,45,45,0.25);
+    font-size:12.5px; line-height:1.5; color:var(--text);
+  }
+  .cookie-banner a{ color:var(--blue); }
+  .cookie-banner-botoes{ display:flex; gap:8px; margin-top:10px; }
+  .cookie-banner-botoes button{
+    flex:1; border:none; border-radius:14px; padding:8px 10px; font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  #cookieAceitar{ background:linear-gradient(135deg, var(--blue), var(--blue-2)); color:#fff; }
+  #cookieRecusar{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  @media (max-width:480px){
+    .cookie-banner{ left:14px; right:14px; max-width:none; bottom:70px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topbar">
+    <a href="/index.html"><img class="brand-logo" src="/logo_tabela_fipe_site_transparente.png" alt="TabelaFipe.Site"></a>
+    <div class="name">tabelafipe.site</div>
+    <div class="topbar-right"><a href="/index.html">← início</a></div>
+  </div>
+
+  <div class="card">
+    <h1>Privacidade e cookies</h1>
+    <p class="muted">Última atualização: julho de 2026.</p>
+
+    <p>O tabelafipe.site é um serviço gratuito de consulta de preços da tabela FIPE
+    e anúncios de veículos. Esta página explica, de forma direta, quais dados
+    coletamos, por quê, e como você pode controlar isso — em conformidade com a
+    LGPD (Lei Geral de Proteção de Dados) e, para visitantes da União Europeia,
+    com o GDPR.</p>
+
+    <h2>O que usamos e por quê</h2>
+    <table>
+      <tr><th>Item</th><th>Finalidade</th><th>Precisa de consentimento?</th></tr>
+      <tr><td><code>tf_zoom</code> (localStorage)</td><td>Lembrar o tamanho de fonte escolhido (acessibilidade)</td><td>Não — essencial ao funcionamento</td></tr>
+      <tr><td><code>tf_consent</code> (localStorage)</td><td>Lembrar sua decisão sobre este banner</td><td>Não — essencial ao funcionamento</td></tr>
+      <tr><td>Google Analytics (GA4)</td><td>Entender quantas pessoas visitam o site e quais páginas usam mais</td><td>Sim</td></tr>
+      <tr><td>Google AdSense</td><td>Exibir anúncios que ajudam a manter o site gratuito</td><td>Sim, para anúncios personalizados</td></tr>
+      <tr><td>Supabase (banco de dados)</td><td>Guardar anúncios publicados, contas de vendedores e histórico de consultas de preço</td><td>Não — necessário à prestação do serviço que você pediu</td></tr>
+    </table>
+
+    <h2>Consentimento</h2>
+    <p>Por padrão, os cookies/identificadores de analytics e anúncios personalizados
+    ficam <strong>bloqueados</strong> até você aceitar no banner que aparece na
+    primeira visita. Se você recusar (ou não decidir), o Google Analytics e o
+    AdSense continuam operando em modo restrito, sem usar cookies de
+    identificação — apenas medições agregadas, conforme suportado pelo Google
+    Consent Mode.</p>
+    <p>Você pode mudar de ideia a qualquer momento, clicando no botão abaixo:</p>
+    <button class="btn-preferencias" id="btnMudarPreferencia">Gerenciar minhas preferências de cookies</button>
+
+    <h2>Seus direitos (LGPD)</h2>
+    <ul>
+      <li>Confirmar se tratamos seus dados e acessar quais dados são esses.</li>
+      <li>Corrigir dados incompletos, inexatos ou desatualizados.</li>
+      <li>Solicitar a exclusão dos dados do seu anúncio ou conta de vendedor.</li>
+      <li>Revogar o consentimento de analytics/anúncios a qualquer momento (veja acima).</li>
+    </ul>
+    <p>Para exercer qualquer um desses direitos, envie um email para
+    <a href="mailto:contato@tabelafipe.site">contato@tabelafipe.site</a>.</p>
+
+    <h2>Terceiros</h2>
+    <p>Usamos Google Analytics e Google AdSense (Google LLC) e Supabase (banco
+    de dados e autenticação). Cada um tem sua própria política de privacidade;
+    o Google detalha o uso de dados em
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+  </div>
+
+  <a class="voltar" href="/index.html">← Voltar para o início</a>
+</div>
+
+<div class="cookie-banner" id="cookieBanner" hidden>
+  <p>Usamos cookies para estatísticas e anúncios. Você pode aceitar ou recusar — isso não afeta o uso do site. <a href="/privacidade.html">Saiba mais</a>.</p>
+  <div class="cookie-banner-botoes">
+    <button type="button" id="cookieRecusar">Recusar</button>
+    <button type="button" id="cookieAceitar">Aceitar</button>
+  </div>
+</div>
+<script>
+(function(){
+  var banner = document.getElementById('cookieBanner');
+  if (!localStorage.getItem('tf_consent')) banner.hidden = false;
+  function decidir(valor){
+    localStorage.setItem('tf_consent', valor);
+    banner.hidden = true;
+    if (valor === 'aceito' && window.gtag) {
+      gtag('consent', 'update', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted'
+      });
+    }
+  }
+  document.getElementById('cookieAceitar').addEventListener('click', function(){ decidir('aceito'); });
+  document.getElementById('cookieRecusar').addEventListener('click', function(){ decidir('recusado'); });
+  document.getElementById('btnMudarPreferencia').addEventListener('click', function(){
+    localStorage.removeItem('tf_consent');
+    banner.hidden = false;
+  });
+})();
+</script>
+
+<div class="a11y-fontctrl" role="group" aria-label="Ajustar tamanho da fonte">
+  <button type="button" data-step="-1" aria-label="Diminuir fonte">A-</button>
+  <button type="button" data-step="0" aria-label="Tamanho padrão de fonte">A</button>
+  <button type="button" data-step="1" aria-label="Aumentar fonte">A+</button>
+</div>
+<script>
+(function(){
+  var STEPS=[90,100,110,120,130];
+  var salvo=parseInt(localStorage.getItem('tf_zoom'),10);
+  var i=STEPS.indexOf(salvo); if(i===-1) i=STEPS.indexOf(100);
+  document.querySelectorAll('.a11y-fontctrl button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var step=btn.getAttribute('data-step');
+      i = step==='0' ? STEPS.indexOf(100) : Math.min(STEPS.length-1, Math.max(0, i+parseInt(step,10)));
+      var novo=STEPS[i];
+      document.documentElement.style.zoom = novo + '%';
+      localStorage.setItem('tf_zoom', novo);
+    });
+  });
+})();
+</script>
+</body>
+</html>
