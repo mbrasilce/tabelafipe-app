@@ -142,14 +142,33 @@ const TEMPLATE = `<!DOCTYPE html>
     .marquee-track{ animation:none; overflow-x:auto; }
   }
 
-  .noticias-wrap{ width:100%; max-width:640px; margin-top:26px; }
-  .noticias-title{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; margin-bottom:8px; }
-  .noticias-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
-  .noticias-lista a{ color:var(--text); text-decoration:none; font-size:13.5px; font-weight:500; }
-  .noticias-lista a:hover{ color:var(--blue); }
-  .noticias-fonte{ color:var(--muted); font-size:11.5px; }
-  .noticias-ver-todas{ display:inline-block; margin-top:8px; color:var(--muted); font-size:12.5px; text-decoration:none; }
-  .noticias-ver-todas:hover{ color:var(--blue); }
+  .noticias-wrap{ width:100%; max-width:640px; margin-top:30px; }
+  .noticias-title{ font-family:'Oswald',sans-serif; font-weight:600; font-size:16px; margin-bottom:12px; text-align:center; }
+  .noticias-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; }
+  .noticias-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; display:flex; flex-direction:column; text-decoration:none; color:var(--text);
+    transition:transform .15s ease, border-color .15s ease;
+    box-shadow:0 12px 24px -14px rgba(45,45,45,0.18);
+  }
+  .noticias-card:hover{ transform:translateY(-3px); border-color:var(--blue); }
+  .noticias-card-img{ width:100%; height:88px; object-fit:cover; background:var(--surface-2); display:block; }
+  .noticias-card-icon{
+    width:100%; height:88px; display:flex; align-items:center; justify-content:center;
+    font-size:28px; background:var(--surface-2);
+  }
+  .noticias-card-body{ padding:10px 12px; display:flex; flex-direction:column; gap:5px; }
+  .noticias-card-titulo{
+    font-size:12.5px; font-weight:600; line-height:1.35; margin:0;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .noticias-card-fonte{ font-size:10.5px; color:var(--muted); }
+  .noticias-ver-todas{
+    display:block; text-align:center; margin-top:14px; background:var(--surface-2);
+    border:1px solid var(--border); color:var(--text); padding:11px 18px; border-radius:20px;
+    font-size:13.5px; font-weight:600; text-decoration:none;
+  }
+  .noticias-ver-todas:hover{ border-color:var(--blue); color:var(--blue); }
 
   .a11y-fontctrl{
     position:fixed; bottom:14px; left:14px; z-index:999;
@@ -344,14 +363,16 @@ function montarMarquee(itens) {
   </div>`;
 }
 
+const NOTICIA_ICONE = { carros: "🚗", motos: "🏍️", caminhoes: "🚚" };
+
 // Últimas notícias (RSS) já processadas pela Edge Function atualizar-noticias.
 async function buscarNoticias() {
   try {
     const { data, error } = await supabase
       .from("noticias")
-      .select("titulo, link, fonte")
+      .select("titulo, link, fonte, imagem_url, categoria")
       .order("publicado_em", { ascending: false, nullsFirst: false })
-      .limit(6);
+      .limit(4);
     if (error || !data) return [];
     return data;
   } catch {
@@ -361,15 +382,24 @@ async function buscarNoticias() {
 
 function montarNoticias(itens) {
   if (!itens.length) return "";
-  const linhas = itens
+  const cards = itens
     .map(
-      (n) =>
-        `<li><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(n.titulo)}</a> <span class="noticias-fonte">— ${escapeHtml(n.fonte)}</span></li>`
+      (n) => `<a class="noticias-card" href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
+      ${
+        n.imagem_url
+          ? `<img class="noticias-card-img" src="${escapeHtml(n.imagem_url)}" alt="" loading="lazy">`
+          : `<div class="noticias-card-icon">${NOTICIA_ICONE[n.categoria] || "📰"}</div>`
+      }
+      <div class="noticias-card-body">
+        <div class="noticias-card-titulo">${escapeHtml(n.titulo)}</div>
+        <div class="noticias-card-fonte">${escapeHtml(n.fonte)}</div>
+      </div>
+    </a>`
     )
     .join("");
   return `<div class="noticias-wrap">
-    <div class="noticias-title">📰 Notícias</div>
-    <ul class="noticias-lista">${linhas}</ul>
+    <div class="noticias-title">📰 Notícias de carros, motos e caminhões</div>
+    <div class="noticias-grid">${cards}</div>
     <a class="noticias-ver-todas" href="/noticias.html">Ver todas as notícias →</a>
   </div>`;
 }
