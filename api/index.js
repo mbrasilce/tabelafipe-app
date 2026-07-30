@@ -154,13 +154,13 @@ const TEMPLATE = `<!DOCTYPE html>
   </a>
 </div>
 
-<!-- anúncio manual: entre os cards de Consultar/Ver anúncios e o resto da página -->
+<!-- anúncio manual (in-article): entre os cards de Consultar/Ver anúncios e o resto da página -->
 <ins class="adsbygoogle"
-     style="display:block; width:100%; max-width:640px; margin:24px auto 0;"
+     style="display:block; text-align:center; width:100%; max-width:640px; margin:24px auto 0;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
      data-ad-client="ca-pub-9655532802163165"
-     data-ad-slot="SEU_AD_SLOT_HOME_AQUI"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
+     data-ad-slot="1896219339"></ins>
 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
 <a href="vendedor-login.html" style="margin-top:28px; color:var(--muted); font-size:12.5px; text-decoration:none;">Sou vendedor, entrar no meu painel →</a>
