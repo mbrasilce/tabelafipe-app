@@ -150,3 +150,54 @@ where status = 'ativo' and publicado_em > now() - interval '30 days'
 order by publicado_em desc;
 
 grant select on anuncios_publicos to anon, authenticated;
+
+-- ========================================
+-- Notícias (RSS) — carros/motos/caminhões
+-- ========================================
+create table if not exists noticias (
+  id bigint generated always as identity primary key,
+  categoria text not null check (categoria in ('carros', 'motos', 'caminhoes')),
+  titulo text not null,
+  resumo text,
+  link text not null unique,   -- chave de dedupe: o <link> do item RSS é estável
+  imagem_url text,
+  fonte text not null,         -- nome do site de origem (ex: 'Quatro Rodas')
+  publicado_em timestamptz,    -- parseado do <pubDate>; pode ser null se não parsear
+  criado_em timestamptz not null default now()
+);
+
+create index if not exists idx_noticias_categoria_publicado
+  on noticias (categoria, publicado_em desc);
+
+-- Mesmo padrão de veiculos_cache: RLS ligada, sem policies — só a
+-- Edge Function atualizar-noticias e as functions da Vercel (service_role)
+-- tocam essa tabela. Nenhum código de navegador lê direto.
+alter table noticias enable row level security;
+
+-- ========================================
+-- Agendamento (pg_cron + pg_net) da atualização de notícias
+-- ========================================
+create extension if not exists pg_cron;
+create extension if not exists pg_net with schema extensions;
+
+-- project_url e anon_key ficam no Vault em vez de hardcoded no cron.job
+-- (que fica visível em cron.job.command pra quem acessa o SQL editor).
+select vault.create_secret('https://cklgxrebbjddhybbkzpn.supabase.co', 'project_url');
+select vault.create_secret('<SUPABASE_ANON_KEY>', 'anon_key');
+
+select cron.schedule(
+  'atualizar-noticias-a-cada-2h',
+  '0 */2 * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url')
+           || '/functions/v1/atualizar-noticias',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'anon_key')
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 25000  -- default é só 2000ms, insuficiente pra buscar 4 feeds
+  ) as request_id;
+  $$
+);

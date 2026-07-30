@@ -8,6 +8,9 @@
     { "source": "/", "destination": "/api/index" },
     { "source": "/index.html", "destination": "/api/index" },
     { "source": "/anuncio/:id", "destination": "/api/anuncio?id=:id" },
-    { "source": "/anuncios.html", "destination": "/api/anuncios" }
+    { "source": "/anuncios.html", "destination": "/api/anuncios" },
+    { "source": "/preco-fipe/:id", "destination": "/api/preco-fipe?id=:id" },
+    { "source": "/noticias.html", "destination": "/api/noticias" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ]
 }

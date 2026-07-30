@@ -118,9 +118,11 @@ O tag do GA4 (`gtag.js`, `G-1QS16BMJ91`) e o loader do AdSense
 (`ca-pub-9655532802163165`) estão no `<head>` de toda página — inclusive
 `api/index.js` — o mais alto possível, conforme os guias oficiais de cada
 um. Tem também um `ads.txt` na raiz com a entrada padrão do Google. O
-AdSense está em modo Auto ads (sem unidades manuais); se quiser controlar
-onde os anúncios aparecem, dá pra adicionar blocos `<ins class="adsbygoogle">`
-com `data-ad-slot` específico depois.
+AdSense roda em modo Auto ads e também tem uma unidade manual in-article
+(`data-ad-slot="1896219339"`) aplicada nas páginas de conteúdo público (home,
+`anuncio.js`, `anuncios.js`, `anuncio.html`, `preco-fipe.js`, `noticias.js`) —
+não em `consultar.html` (widget de chat) nem nas páginas do painel do
+vendedor (área privada).
 
 ## Painel do vendedor (Supabase Auth)
 

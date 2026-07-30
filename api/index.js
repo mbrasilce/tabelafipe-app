@@ -108,6 +108,8 @@ const TEMPLATE = `<!DOCTYPE html>
     font-size:12.5px; color:var(--muted);
     animation:marquee-scroll 22s linear infinite;
   }
+  .marquee-track a{ color:inherit; text-decoration:none; }
+  .marquee-track a:hover{ text-decoration:underline; }
   @keyframes marquee-scroll{
     from{ transform:translateX(0); }
     to{ transform:translateX(-50%); }
@@ -115,6 +117,15 @@ const TEMPLATE = `<!DOCTYPE html>
   @media (prefers-reduced-motion: reduce){
     .marquee-track{ animation:none; overflow-x:auto; }
   }
+
+  .noticias-wrap{ width:100%; max-width:640px; margin-top:26px; }
+  .noticias-title{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; margin-bottom:8px; }
+  .noticias-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+  .noticias-lista a{ color:var(--text); text-decoration:none; font-size:13.5px; font-weight:500; }
+  .noticias-lista a:hover{ color:var(--blue); }
+  .noticias-fonte{ color:var(--muted); font-size:11.5px; }
+  .noticias-ver-todas{ display:inline-block; margin-top:8px; color:var(--muted); font-size:12.5px; text-decoration:none; }
+  .noticias-ver-todas:hover{ color:var(--blue); }
 
   .a11y-fontctrl{
     position:fixed; bottom:14px; left:14px; z-index:999;
@@ -165,6 +176,8 @@ const TEMPLATE = `<!DOCTYPE html>
 
 <a href="vendedor-login.html" style="margin-top:28px; color:var(--muted); font-size:12.5px; text-decoration:none;">Sou vendedor, entrar no meu painel →</a>
 
+<!--NOTICIAS-->
+
 <!--RECENTES-->
 
 <div class="a11y-fontctrl" role="group" aria-label="Ajustar tamanho da fonte">
@@ -199,6 +212,19 @@ function escapeHtml(s) {
   }[c]));
 }
 
+function slugify(s) {
+  return String(s || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function urlPrecoFipe(b) {
+  const slug = slugify([b.marca, b.modelo, b.ano_modelo].filter(Boolean).join(" "));
+  return `/preco-fipe/${b.id}${slug ? "-" + slug : ""}`;
+}
+
 function formatarBusca(b) {
   const base = [b.marca, b.modelo, b.ano_modelo].filter(Boolean).join(" ");
   return b.valor ? `${base} - ${b.valor}` : base;
@@ -211,7 +237,7 @@ async function buscarRecentes() {
   try {
     const { data, error } = await supabase
       .from("veiculos_cache")
-      .select("marca, modelo, ano_modelo, valor, atualizado_em")
+      .select("id, marca, modelo, ano_modelo, valor, atualizado_em")
       .order("atualizado_em", { ascending: false })
       .limit(8);
     if (error || !data) return [];
@@ -222,7 +248,7 @@ async function buscarRecentes() {
       const texto = formatarBusca(b);
       if (!texto || vistas.has(texto)) continue;
       vistas.add(texto);
-      unicas.push(texto);
+      unicas.push({ id: b.id, texto, href: urlPrecoFipe(b) });
       if (unicas.length === 2) break;
     }
     return unicas;
@@ -233,20 +259,56 @@ async function buscarRecentes() {
 
 function montarMarquee(itens) {
   if (!itens.length) return "";
-  const texto = escapeHtml(`Pesquisaram: ${itens.join("  ·  ")}`);
-  // o texto aparece duplicado dentro da faixa pra animação rodar em loop
+  const links = itens
+    .map((it) => `<a href="${it.href}">${escapeHtml(it.texto)}</a>`)
+    .join('<span aria-hidden="true">  ·  </span>');
+  const faixa = `<span>Pesquisaram: </span>${links}`;
+  // o conteúdo aparece duplicado dentro da faixa pra animação rodar em loop
   // contínuo (translateX(-50%)) sem dar um "salto" visível no final.
   return `<div class="marquee-wrap">
     <div class="marquee-track">
-      <span>${texto}</span>
-      <span>${texto}</span>
+      <span>${faixa}</span>
+      <span>${faixa}</span>
     </div>
   </div>`;
 }
 
+// Últimas notícias (RSS) já processadas pela Edge Function atualizar-noticias.
+async function buscarNoticias() {
+  try {
+    const { data, error } = await supabase
+      .from("noticias")
+      .select("titulo, link, fonte")
+      .order("publicado_em", { ascending: false, nullsFirst: false })
+      .limit(6);
+    if (error || !data) return [];
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+function montarNoticias(itens) {
+  if (!itens.length) return "";
+  const linhas = itens
+    .map(
+      (n) =>
+        `<li><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(n.titulo)}</a> <span class="noticias-fonte">— ${escapeHtml(n.fonte)}</span></li>`
+    )
+    .join("");
+  return `<div class="noticias-wrap">
+    <div class="noticias-title">📰 Notícias</div>
+    <ul class="noticias-lista">${linhas}</ul>
+    <a class="noticias-ver-todas" href="/noticias.html">Ver todas as notícias →</a>
+  </div>`;
+}
+
 module.exports = async (req, res) => {
-  const recentes = await buscarRecentes();
-  const html = TEMPLATE.replace("<!--RECENTES-->", montarMarquee(recentes));
+  const [recentes, noticias] = await Promise.all([buscarRecentes(), buscarNoticias()]);
+  const html = TEMPLATE.replace("<!--NOTICIAS-->", montarNoticias(noticias)).replace(
+    "<!--RECENTES-->",
+    montarMarquee(recentes)
+  );
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
