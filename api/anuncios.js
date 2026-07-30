@@ -230,12 +230,22 @@ module.exports = async (req, res) => {
 
   ${conteudoHtml}
 
+  <ins class="adsbygoogle"
+       style="display:block; text-align:center; margin-top:20px;"
+       data-ad-layout="in-article"
+       data-ad-format="fluid"
+       data-ad-client="ca-pub-9655532802163165"
+       data-ad-slot="1896219339"></ins>
+
   <div class="anunciar-cta">
     Quer vender o seu? <a href="/consultar.html">Consulte o preço e crie seu anúncio com IA →</a>
   </div>
 </div>
 
-<script>${pushAds}</script>
+<script>
+(window.adsbygoogle = window.adsbygoogle || []).push({});
+${pushAds}
+</script>
 
 <div class="a11y-fontctrl" role="group" aria-label="Ajustar tamanho da fonte">
   <button type="button" data-step="-1" aria-label="Diminuir fonte">A-</button>

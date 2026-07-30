@@ -209,7 +209,15 @@ module.exports = async (req, res) => {
     <div class="form-contato" id="formContato" hidden></div>
   </div>
 
-  <div class="ad-slot"><!-- espaço reservado para anúncio do Google --></div>
+  <div class="ad-slot">
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="ca-pub-9655532802163165"
+         data-ad-slot="1896219339"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
 </div>
 
 <script>
